@@ -1,5 +1,13 @@
 // 生理期数据模型
 import { StorageService } from '../services/StorageService';
+import * as PeriodCalculator from '../utils/PeriodCalculator';
+
+export interface Symptom {
+  id: string;           // 症状ID
+  name: string;         // 症状名称
+  value: number;        // 症状程度（0-10）
+  date: Date;           // 记录日期
+}
 
 export interface PeriodRecord {
   id: string;           // 记录ID
@@ -8,6 +16,7 @@ export interface PeriodRecord {
   cycleLength: number;  // 周期长度（天）
   periodLength: number; // 经期长度（天）
   notes?: string;       // 备注信息
+  symptoms: Symptom[];  // 关联的症状记录
 }
 
 export interface PredictionResult {
@@ -28,12 +37,15 @@ export interface UserSettings {
   averagePeriodLength: number; // 平均经期长度
   reminderEnabled: boolean;    // 是否启用提醒
   themeColor: string;          // 主题颜色
+  darkMode: boolean;           // 是否启用深色模式
+  onboardingCompleted: boolean; // 是否完成新手引导
 }
 
 export class PeriodData {
   private records: PeriodRecord[] = [];
   private settings: UserSettings;
   private storageService: StorageService;
+  private commonSymptoms: string[] = ['腹痛', '乳房胀痛', '疲劳', '情绪波动', '头痛', '恶心', '腰痛', '痤疮'];
 
   constructor() {
     this.storageService = new StorageService();
@@ -43,7 +55,9 @@ export class PeriodData {
       averageCycleLength: 28,
       averagePeriodLength: 5,
       reminderEnabled: false,
-      themeColor: '#FF6B6B'
+      themeColor: '#FF6B6B',
+      darkMode: false,
+      onboardingCompleted: false
     };
     
     // 初始化时加载数据
@@ -71,7 +85,8 @@ export class PeriodData {
   async addRecord(record: Omit<PeriodRecord, 'id'>): Promise<string> {
     const newRecord: PeriodRecord = {
       ...record,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      symptoms: record.symptoms || []
     };
     this.records.push(newRecord);
     this.records.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
@@ -80,6 +95,45 @@ export class PeriodData {
     await this.storageService.savePeriodRecords(this.records);
     
     return newRecord.id;
+  }
+
+  // 添加症状记录
+  async addSymptom(periodId: string, symptom: Omit<Symptom, 'id'>): Promise<string> {
+    const record = this.records.find(r => r.id === periodId);
+    if (record) {
+      const newSymptom: Symptom = {
+        ...symptom,
+        id: Date.now().toString()
+      };
+      record.symptoms.push(newSymptom);
+      
+      // 保存到存储
+      await this.storageService.savePeriodRecords(this.records);
+      
+      return newSymptom.id;
+    }
+    return '';
+  }
+
+  // 删除症状记录
+  async deleteSymptom(periodId: string, symptomId: string): Promise<boolean> {
+    const record = this.records.find(r => r.id === periodId);
+    if (record) {
+      const initialLength = record.symptoms.length;
+      record.symptoms = record.symptoms.filter(s => s.id !== symptomId);
+      
+      if (record.symptoms.length < initialLength) {
+        // 保存到存储
+        await this.storageService.savePeriodRecords(this.records);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // 获取常用症状列表
+  getCommonSymptoms(): string[] {
+    return [...this.commonSymptoms];
   }
 
   // 获取所有记录
@@ -117,5 +171,63 @@ export class PeriodData {
     }
     
     return false;
+  }
+
+  // 获取预测结果
+  getPrediction(): PredictionResult {
+    return PeriodCalculator.predictNextPeriod(this.getLatestRecord(), this.settings, this.records);
+  }
+
+  // 获取当前周期阶段
+  getCurrentPhase(): string {
+    return PeriodCalculator.getCurrentCyclePhase(new Date(), this.getLatestRecord(), this.settings, this.records);
+  }
+
+  // 获取距离下次月经的天数
+  getDaysUntilNextPeriod(): number {
+    return PeriodCalculator.daysUntilNextPeriod(this.getLatestRecord(), this.settings, this.records);
+  }
+
+  // 获取周期统计信息
+  getCycleStats(): {
+    averageCycleLength: number;
+    averagePeriodLength: number;
+    recordCount: number;
+    cycleVariability: number;
+  } {
+    return {
+      averageCycleLength: PeriodCalculator.calculateAverageCycleLength(this.records),
+      averagePeriodLength: PeriodCalculator.calculateAveragePeriodLength(this.records),
+      recordCount: this.records.length,
+      cycleVariability: PeriodCalculator.calculateCycleVariability(this.records)
+    };
+  }
+
+  // 获取周期趋势数据（用于图表展示）
+  getCycleTrendData(): {
+    dates: string[];
+    cycleLengths: number[];
+    periodLengths: number[];
+  } {
+    return PeriodCalculator.generateCycleTrendData(this.records);
+  }
+
+  // 清除所有数据
+  async clearAllData(): Promise<void> {
+    // 清空本地记录
+    this.records = [];
+    
+    // 重置设置为默认值
+    this.settings = {
+      averageCycleLength: 28,
+      averagePeriodLength: 5,
+      reminderEnabled: false,
+      themeColor: '#FF6B6B',
+      darkMode: false,
+      onboardingCompleted: false
+    };
+    
+    // 保存到存储
+    await this.storageService.clearAllData();
   }
 }

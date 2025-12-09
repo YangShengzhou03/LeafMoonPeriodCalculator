@@ -1,7 +1,9 @@
-import { PeriodData } from '../model/PeriodData';
+import { PeriodData, Symptom } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Color, FontWeight, FlexAlign, FlexDirection, ItemAlign } from '@kit.ArkUI';
+import { Color, FontWeight, FlexAlign, FlexDirection, ItemAlign, VerticalAlign, ProgressType, SliderStyle, Animation, TranslateAnimation } from '@kit.ArkUI';
 import { router } from '@kit.ArkUI';
+import { AlertDialog, DatePickerDialog, Select, SelectOption, Slider } from '@kit.ArkUI';
+import { Onboarding } from '../components/Onboarding';
 
 @Entry
 @Component
@@ -10,6 +12,23 @@ struct Index {
   @State currentDate: Date = new Date();
   @State showDatePicker: boolean = false;
   @State selectedDate: Date = new Date();
+  @State showSymptomDialog: boolean = false;
+  @State selectedSymptom: string = '';
+  @State symptomValue: number = 5;
+  @State currentPeriodId: string = '';
+  @State showSymptomList: boolean = false;
+  @State darkMode: boolean = false;
+  @State showOnboarding: boolean = false;
+
+  // 初始化组件
+  aboutToAppear() {
+    // 从存储加载数据
+    this.periodData.loadData();
+    // 获取当前深色模式设置
+    this.darkMode = this.periodData.getSettings().darkMode;
+    // 检查是否需要显示新手引导
+    this.showOnboarding = !this.periodData.getSettings().onboardingCompleted;
+  }
 
   // 获取当前周期阶段
   getCurrentPhase(): string {
@@ -78,114 +97,260 @@ struct Index {
   // 添加周期记录
   async addPeriodRecord() {
     const settings = this.periodData.getSettings();
-    await this.periodData.addRecord({
+    const periodId = await this.periodData.addRecord({
       startDate: this.selectedDate,
       endDate: PeriodCalculator.addDays(this.selectedDate, settings.averagePeriodLength - 1),
       cycleLength: settings.averageCycleLength,
-      periodLength: settings.averagePeriodLength
+      periodLength: settings.averagePeriodLength,
+      symptoms: []
     });
+    
+    // 保存当前周期ID，用于后续添加症状
+    this.currentPeriodId = periodId;
+    // 自动打开症状记录对话框
+    this.showSymptomDialog = true;
+  }
+
+  // 添加症状记录
+  async addSymptom() {
+    if (this.selectedSymptom && this.currentPeriodId) {
+      await this.periodData.addSymptom(this.currentPeriodId, {
+        name: this.selectedSymptom,
+        value: this.symptomValue,
+        date: this.selectedDate
+      });
+      this.showSymptomDialog = false;
+      // 重置表单
+      this.selectedSymptom = '';
+      this.symptomValue = 5;
+    }
+  }
+
+  // 获取当前周期的症状记录
+  getCurrentPeriodSymptoms(): Symptom[] {
+    if (this.currentPeriodId) {
+      const record = this.periodData.getAllRecords().find(r => r.id === this.currentPeriodId);
+      return record ? record.symptoms : [];
+    }
+    const latestRecord = this.periodData.getLatestRecord();
+    return latestRecord ? latestRecord.symptoms : [];
   }
 
   build() {
-    Column() {
-      // 顶部信息栏
-      Stack() {
+    Stack() {
+      Column() {
+        // 顶部信息栏
+        Stack() {
         Column() {
           Text('LeafMoon')
-            .fontSize(24)
+            .fontSize(28)
             .fontWeight(FontWeight.Bold)
             .color(Color.White)
+            .margin({ bottom: 4 })
           Text('生理期计算器')
-            .fontSize(14)
-            .color(Color.White)
+            .fontSize(16)
+            .color('rgba(255, 255, 255, 0.9)')
         }
         .padding(20)
+        .alignItems(HorizontalAlign.Center)
+
+        // 设置按钮
+        Button() {
+          Text('⚙️')
+            .fontSize(22)
+        }
+        .type(ButtonType.Circle)
+        .backgroundColor('rgba(255, 255, 255, 0.2)')
+        .width(44)
+        .height(44)
+        .position({ x: '90%', y: 20 })
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/SettingsPage' });
+        })
+        .animation({
+          type: AnimationType.Scale,
+          duration: 200,
+          curve: Curve.EaseInOut
+        })
       }
       .width('100%')
-      .height(120)
-      .backgroundColor('#FF6B6B')
-      .borderRadius(0, 0, 20, 20)
+      .height(140)
+      .backgroundGradient({
+        direction: GradientDirection.TopToBottom,
+        colors: ['#FF6B6B', '#FF8787']
+      })
+      .borderRadius(0, 0, 24, 24)
+      .shadow({
+        radius: 10,
+        color: 'rgba(255, 107, 107, 0.2)',
+        offsetX: 0,
+        offsetY: 5
+      })
 
       // 当前状态卡片
       Column() {
         Text(this.getCurrentPhase())
-          .fontSize(20)
+          .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .color(this.getPhaseColor())
+          .margin({ bottom: 10 })
         Text(`距离下次月经还有 ${this.getDaysUntilNextPeriod()} 天`)
-          .fontSize(14)
-          .color('#666666')
-          .margin({ top: 8 })
+          .fontSize(16)
+          .color(this.darkMode ? '#AAAAAA' : '#666666')
       }
       .width('90%')
-      .padding(20)
-      .margin({ top: -30 })
-      .backgroundColor(Color.White)
-      .borderRadius(15)
+      .padding(28)
+      .margin({ top: -40 })
+      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .borderRadius(20)
       .shadow({
-        radius: 10,
-        color: 'rgba(0, 0, 0, 0.1)',
+        radius: 16,
+        color: 'rgba(0, 0, 0, 0.12)',
         offsetX: 0,
-        offsetY: 5
+        offsetY: 8
+      })
+      .animation({
+        type: AnimationType.Translate,
+        duration: 300,
+        curve: Curve.EaseOut
       })
 
       // 快捷操作按钮
       Row() {
         Button('记录月经')
-          .width('45%')
-          .height(50)
+          .width('22%')
+          .height(56)
           .backgroundColor('#FF6B6B')
           .fontColor(Color.White)
-          .borderRadius(10)
+          .fontSize(16)
+          .borderRadius(16)
+          .shadow({
+            radius: 8,
+            color: 'rgba(255, 107, 107, 0.2)',
+            offsetX: 0,
+            offsetY: 4
+          })
           .onClick(() => this.openDatePicker())
+          .animation({
+            type: AnimationType.Scale,
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
+
+        Button('记录症状')
+          .width('22%')
+          .height(56)
+          .backgroundColor('#FF9F43')
+          .fontColor(Color.White)
+          .fontSize(16)
+          .borderRadius(16)
+          .shadow({
+            radius: 8,
+            color: 'rgba(255, 159, 67, 0.2)',
+            offsetX: 0,
+            offsetY: 4
+          })
+          .onClick(() => {
+            const latestRecord = this.periodData.getLatestRecord();
+            if (latestRecord) {
+              this.currentPeriodId = latestRecord.id;
+              this.selectedDate = new Date();
+              this.showSymptomDialog = true;
+            } else {
+              // 如果没有周期记录，先引导用户记录月经
+              this.openDatePicker();
+            }
+          })
+          .animation({
+            type: AnimationType.Scale,
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
 
         Button('查看日历')
-          .width('45%')
-          .height(50)
+          .width('22%')
+          .height(56)
           .backgroundColor('#4D96FF')
           .fontColor(Color.White)
-          .borderRadius(10)
+          .fontSize(16)
+          .borderRadius(16)
+          .shadow({
+            radius: 8,
+            color: 'rgba(77, 150, 255, 0.2)',
+            offsetX: 0,
+            offsetY: 4
+          })
           .onClick(() => {
             router.pushUrl({
               url: 'pages/CalendarPage'
             });
           })
+          .animation({
+            type: AnimationType.Scale,
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
+
+        Button('查看分析')
+          .width('22%')
+          .height(56)
+          .backgroundColor('#9C27B0')
+          .fontColor(Color.White)
+          .fontSize(16)
+          .borderRadius(16)
+          .shadow({
+            radius: 8,
+            color: 'rgba(156, 39, 176, 0.2)',
+            offsetX: 0,
+            offsetY: 4
+          })
+          .onClick(() => {
+            router.pushUrl({
+              url: 'pages/AnalysisPage'
+            });
+          })
+          .animation({
+            type: AnimationType.Scale,
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
       }
       .width('90%')
       .justifyContent(FlexAlign.SpaceBetween)
-      .margin({ top: 20 })
+      .margin({ top: 24 })
 
       // 预测信息卡片
       Column() {
         Text('周期预测')
-          .fontSize(18)
+          .fontSize(20)
           .fontWeight(FontWeight.Bold)
-          .color('#333333')
+          .color(this.darkMode ? '#FFFFFF' : '#333333')
           .alignSelf(ItemAlign.Start)
+          .margin({ bottom: 16 })
 
         const latestRecord = this.periodData.getLatestRecord();
         const settings = this.periodData.getSettings();
         const prediction = PeriodCalculator.predictNextPeriod(latestRecord, settings);
 
-        Flex({ direction: FlexDirection.Column, gap: 15 }) {
+        Flex({ direction: FlexDirection.Column, gap: 18 }) {
           Row() {
             Text('下次月经:')
               .width(100)
-              .fontSize(14)
-              .color('#666666')
+              .fontSize(16)
+              .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.nextPeriod))
-              .fontSize(14)
+              .fontSize(16)
               .fontWeight(FontWeight.Bold)
-              .color('#333333')
+              .color('#FF6B6B')
           }
 
           Row() {
             Text('排卵日:')
               .width(100)
-              .fontSize(14)
-              .color('#666666')
+              .fontSize(16)
+              .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.ovulationDay))
-              .fontSize(14)
+              .fontSize(16)
               .fontWeight(FontWeight.Bold)
               .color('#FFD93D')
           }
@@ -193,102 +358,267 @@ struct Index {
           Row() {
             Text('易孕期:')
               .width(100)
-              .fontSize(14)
-              .color('#666666')
+              .fontSize(16)
+              .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(
               `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ` +
               `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
             )
-              .fontSize(14)
+              .fontSize(16)
               .fontWeight(FontWeight.Bold)
               .color('#FF9F43')
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
 
           Row() {
             Text('安全期:')
               .width(100)
-              .fontSize(14)
-              .color('#666666')
+              .fontSize(16)
+              .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(
               `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ` +
               `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
             )
-              .fontSize(14)
+              .fontSize(16)
               .fontWeight(FontWeight.Bold)
               .color('#6BCB77')
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
         }
-        .margin({ top: 15 })
+        .margin({ top: 5 })
       }
       .width('90%')
-      .padding(20)
-      .margin({ top: 20 })
-      .backgroundColor(Color.White)
-      .borderRadius(15)
+      .padding(24)
+      .margin({ top: 24 })
+      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .borderRadius(20)
       .shadow({
-        radius: 10,
-        color: 'rgba(0, 0, 0, 0.1)',
+        radius: 16,
+        color: 'rgba(0, 0, 0, 0.12)',
         offsetX: 0,
-        offsetY: 5
+        offsetY: 8
+      })
+
+      // 症状记录卡片
+      Column() {
+        Row() {
+          Text('症状记录')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .color(this.darkMode ? '#FFFFFF' : '#333333')
+            .alignSelf(ItemAlign.Start)
+
+          Button(this.showSymptomList ? '收起' : '展开')
+            .fontSize(14)
+            .fontColor('#4D96FF')
+            .backgroundColor(this.darkMode ? 'rgba(77, 150, 255, 0.2)' : 'rgba(77, 150, 255, 0.1)')
+            .borderRadius(20)
+            .padding({ horizontal: 16, vertical: 6 })
+            .onClick(() => this.showSymptomList = !this.showSymptomList)
+            .animation({
+              type: AnimationType.Scale,
+              duration: 200,
+              curve: Curve.EaseInOut
+            })
+        }
+        .justifyContent(FlexAlign.SpaceBetween)
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
+        .margin({ bottom: 16 })
+
+        const symptoms = this.getCurrentPeriodSymptoms();
+        
+        if (this.showSymptomList || symptoms.length > 0) {
+          if (symptoms.length > 0) {
+            List() {
+              ForEach(symptoms, (symptom: Symptom) => {
+                ListItem() {
+                  Row() {
+                    Text(symptom.name)
+                      .width(100)
+                      .fontSize(16)
+                      .fontWeight(FontWeight.Medium)
+                      .color(this.darkMode ? '#DDDDDD' : '#555555')
+                    
+                    // 症状程度进度条
+                    Progress({
+                      value: symptom.value,
+                      total: 10,
+                      type: ProgressType.Linear
+                    })
+                    .width('55%')
+                    .height(10)
+                    .color('#FF9F43')
+                    .backgroundColor(this.darkMode ? '#4A3A2A' : '#FFF0E0')
+                    .borderRadius(5)
+                    
+                    Text(`${symptom.value}`)
+                      .width(30)
+                      .fontSize(16)
+                      .fontWeight(FontWeight.Medium)
+                      .color('#FF9F43')
+                      .textAlign(TextAlign.End)
+                  }
+                  .alignItems(VerticalAlign.Center)
+                  .padding({ vertical: 12, horizontal: 8 })
+                  .backgroundColor(this.darkMode ? '#444444' : '#FFFFFF')
+                  .borderRadius(12)
+                  .margin({ bottom: 8 })
+                }
+              })
+            }
+            .divider({ strokeWidth: 0 })
+          } else {
+            Text('暂无症状记录，点击"记录症状"添加')
+              .fontSize(16)
+              .color(this.darkMode ? '#AAAAAA' : '#999999')
+              .margin({ top: 8 })
+              .padding(12)
+              .backgroundColor(this.darkMode ? '#444444' : '#F8F9FA')
+              .borderRadius(12)
+          }
+        }
+      }
+      .width('90%')
+      .padding(24)
+      .margin({ top: 24 })
+      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .borderRadius(20)
+      .shadow({
+        radius: 16,
+        color: 'rgba(0, 0, 0, 0.12)',
+        offsetX: 0,
+        offsetY: 8
       })
 
       // 统计信息卡片
       Column() {
         Text('统计信息')
-          .fontSize(18)
+          .fontSize(20)
           .fontWeight(FontWeight.Bold)
-          .color('#333333')
+          .color(this.darkMode ? '#FFFFFF' : '#333333')
           .alignSelf(ItemAlign.Start)
+          .margin({ bottom: 20 })
 
         const records = this.periodData.getAllRecords();
         const settings = this.periodData.getSettings();
 
-        Flex({ direction: FlexDirection.Column, gap: 15 }) {
-          Row() {
-            Text('平均周期:')
-              .width(100)
-              .fontSize(14)
-              .color('#666666')
-            Text(`${PeriodCalculator.calculateAverageCycleLength(records)} 天`)
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .color('#333333')
+        Grid() {
+          GridItem() {
+            Column() {
+              Text('平均周期')
+                .fontSize(14)
+                .color('#888888')
+                .margin({ bottom: 8 })
+              Text(`${PeriodCalculator.calculateAverageCycleLength(records)} 天`)
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .color('#FF6B6B')
+            }
+            .padding(20)
+            .backgroundColor('#FFF5F5')
+            .borderRadius(16)
+            .width('100%')
+            .height('100%')
+            .shadow({
+              radius: 8,
+              color: 'rgba(255, 107, 107, 0.1)',
+              offsetX: 0,
+              offsetY: 4
+            })
           }
 
-          Row() {
-            Text('平均经期:')
-              .width(100)
-              .fontSize(14)
-              .color('#666666')
-            Text(`${PeriodCalculator.calculateAveragePeriodLength(records)} 天`)
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .color('#333333')
+          GridItem() {
+            Column() {
+              Text('平均经期')
+                .fontSize(14)
+                .color('#888888')
+                .margin({ bottom: 8 })
+              Text(`${PeriodCalculator.calculateAveragePeriodLength(records)} 天`)
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .color('#FF9F43')
+            }
+            .padding(20)
+            .backgroundColor('#FFF8F0')
+            .borderRadius(16)
+            .width('100%')
+            .height('100%')
+            .shadow({
+              radius: 8,
+              color: 'rgba(255, 159, 67, 0.1)',
+              offsetX: 0,
+              offsetY: 4
+            })
           }
 
-          Row() {
-            Text('记录次数:')
-              .width(100)
-              .fontSize(14)
-              .color('#666666')
-            Text(`${records.length} 次`)
-              .fontSize(14)
-              .fontWeight(FontWeight.Bold)
-              .color('#333333')
+          GridItem() {
+            Column() {
+              Text('记录次数')
+                .fontSize(14)
+                .color('#888888')
+                .margin({ bottom: 8 })
+              Text(records.length.toString())
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .color('#4D96FF')
+            }
+            .padding(20)
+            .backgroundColor('#F0F7FF')
+            .borderRadius(16)
+            .width('100%')
+            .height('100%')
+            .shadow({
+              radius: 8,
+              color: 'rgba(77, 150, 255, 0.1)',
+              offsetX: 0,
+              offsetY: 4
+            })
+          }
+
+          GridItem() {
+            Column() {
+              Text('周期波动')
+                .fontSize(14)
+                .color('#888888')
+                .margin({ bottom: 8 })
+              Text(`${PeriodCalculator.calculateCycleVariability(records)} 天`)
+                .fontSize(22)
+                .fontWeight(FontWeight.Bold)
+                .color('#9C27B0')
+            }
+            .padding(20)
+            .backgroundColor('#F5F0FF')
+            .borderRadius(16)
+            .width('100%')
+            .height('100%')
+            .shadow({
+              radius: 8,
+              color: 'rgba(156, 39, 176, 0.1)',
+              offsetX: 0,
+              offsetY: 4
+            })
           }
         }
-        .margin({ top: 15 })
+        .columnsTemplate('1fr 1fr')
+        .rowsTemplate('1fr 1fr')
+        .columnsGap(16)
+        .rowsGap(16)
+        .width('100%')
+        .height(300)
       }
       .width('90%')
-      .padding(20)
-      .margin({ top: 20, bottom: 20 })
-      .backgroundColor(Color.White)
-      .borderRadius(15)
+      .padding(24)
+      .margin({ top: 24, bottom: 32 })
+      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .borderRadius(20)
       .shadow({
-        radius: 10,
-        color: 'rgba(0, 0, 0, 0.1)',
+        radius: 16,
+        color: 'rgba(0, 0, 0, 0.12)',
         offsetX: 0,
-        offsetY: 5
+        offsetY: 8
       })
 
       // 日期选择器对话框
@@ -310,9 +640,84 @@ struct Index {
           })
           .show();
       }
+
+      // 症状记录对话框
+      if (this.showSymptomDialog) {
+        AlertDialog.show({
+          title: '记录症状',
+          message: '',
+          primaryButton: {
+            value: '取消',
+            action: () => {
+              this.showSymptomDialog = false;
+              this.selectedSymptom = '';
+              this.symptomValue = 5;
+            }
+          },
+          secondaryButton: {
+            value: '确定',
+            action: () => this.addSymptom()
+          },
+          builder: () => {
+            Column() {
+              // 症状选择
+              Text('选择症状:')
+                .fontSize(14)
+                .color('#666666')
+                .alignSelf(ItemAlign.Start)
+                .margin({ bottom: 10 })
+
+              Select() {
+                ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
+                  SelectOption(symptom)
+                    .value(symptom)
+                })
+              }
+              .value(this.selectedSymptom)
+              .onSelect((value) => {
+                this.selectedSymptom = value;
+              })
+              .width('100%')
+              .margin({ bottom: 20 })
+
+              // 症状程度
+              Text('症状程度 (0-10):')
+                .fontSize(14)
+                .color('#666666')
+                .alignSelf(ItemAlign.Start)
+                .margin({ bottom: 10 })
+
+              Slider({
+                value: this.symptomValue,
+                min: 0,
+                max: 10,
+                step: 1,
+                style: SliderStyle.OutSet
+              })
+              .width('100%')
+              .onChange((value) => {
+                this.symptomValue = value;
+              })
+
+              Text(`${this.symptomValue}`)
+                .fontSize(16)
+                .fontWeight(FontWeight.Bold)
+                .color('#333333')
+                .margin({ top: 10 })
+            }
+            .padding(20)
+          },
+          autoCancel: true
+        });
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F5F5')
+    .backgroundColor(this.darkMode ? '#1A1A1A' : '#F5F5F5')
+      
+    // 新手引导
+    if (this.showOnboarding) {
+      Onboarding({ periodData: this.periodData });
+    }
   }
 }
