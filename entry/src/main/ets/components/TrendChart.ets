@@ -1,5 +1,5 @@
-import { Column, Row, Text, Stack, Canvas, CanvasRenderingContext2D } from '@kit.ArkUI';
-import { LineCapStyle, LineJoinStyle } from '@kit.Graphics';
+import { Component } from '@ohos.syscapability.arkui.arkui';
+import { Stack, Canvas, CanvasRenderingContext2D } from '@ohos.canvas';
 
 export interface ChartData {
   dates: string[];
@@ -7,6 +7,7 @@ export interface ChartData {
   periodLengths: number[];
 }
 
+@Component
 export struct TrendChart {
   @Prop data: ChartData;
   @Prop width: number;
@@ -185,8 +186,8 @@ export struct TrendChart {
 
     context.strokeStyle = color;
     context.lineWidth = this.lineWidth;
-    context.lineCap = LineCapStyle.ROUND;
-    context.lineJoin = LineJoinStyle.ROUND;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
 
     // 开始绘制线条
     context.beginPath();

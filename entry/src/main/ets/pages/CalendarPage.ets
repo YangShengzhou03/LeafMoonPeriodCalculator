@@ -1,7 +1,15 @@
 import { PeriodData } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Color, FontWeight, FlexAlign, ItemAlign, FlexDirection } from '@kit.ArkUI';
 import { router } from '@kit.ArkUI';
+
+// 日历天类型定义
+interface CalendarDay {
+  date: Date;
+  day: number;
+  phase: string;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+}
 
 @Entry
 @Component
@@ -11,62 +19,87 @@ struct CalendarPage {
   @State currentMonth: number = new Date().getMonth();
   @State calendarDays: CalendarDay[] = [];
 
-  // 日历天数据结构
-  class CalendarDay {
-    date: Date;
-    day: number;
-    isCurrentMonth: boolean;
-    isToday: boolean;
-    phase: string;
+  // 初始化组件
+  aboutToAppear() {
+    this.generateCalendarDays();
+  }
 
-    constructor(date: Date, isCurrentMonth: boolean) {
-      this.date = date;
-      this.day = date.getDate();
-      this.isCurrentMonth = isCurrentMonth;
-      this.isToday = PeriodCalculator.isSameDay(date, new Date());
-      this.phase = this.getPhaseForDate(date);
-    }
+  // 生成日历天数
+  generateCalendarDays() {
+    this.calendarDays = [];
+    const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+    const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-    private getPhaseForDate(date: Date): string {
-      const latestRecord = this.periodData.getLatestRecord();
-      const settings = this.periodData.getSettings();
-      return PeriodCalculator.getCurrentCyclePhase(date, latestRecord, settings);
+    // 生成42天的日历（6周）
+    for (let i = 0; i < 42; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+      const phase = this.periodData.getCyclePhase(currentDate);
+      const isToday = this.isToday(currentDate);
+      
+      this.calendarDays.push({
+        date: currentDate,
+        day: currentDate.getDate(),
+        phase: phase,
+        isCurrentMonth: currentDate.getMonth() === this.currentMonth,
+        isToday: isToday
+      });
     }
   }
 
-  // 生成日历数据
-  generateCalendarDays() {
-    const firstDayOfMonth = new Date(this.currentYear, this.currentMonth, 1);
-    const lastDayOfMonth = new Date(this.currentYear, this.currentMonth + 1, 0);
-    const startDate = new Date(firstDayOfMonth);
-    startDate.setDate(startDate.getDate() - firstDayOfMonth.getDay());
+  // 判断是否为今天
+  isToday(date: Date): boolean {
+    const today = new Date();
+    return date.getFullYear() === today.getFullYear() &&
+           date.getMonth() === today.getMonth() &&
+           date.getDate() === today.getDate();
+  }
 
-    const days: CalendarDay[] = [];
-    for (let i = 0; i < 42; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      const isCurrentMonth = date.getMonth() === this.currentMonth;
-      days.push(new CalendarDay(date, isCurrentMonth));
+  // 上一个月
+  prevMonth() {
+    this.currentMonth--;
+    if (this.currentMonth < 0) {
+      this.currentMonth = 11;
+      this.currentYear--;
     }
+    this.generateCalendarDays();
+  }
 
-    this.calendarDays = days;
+  // 下一个月
+  nextMonth() {
+    this.currentMonth++;
+    if (this.currentMonth > 11) {
+      this.currentMonth = 0;
+      this.currentYear++;
+    }
+    this.generateCalendarDays();
+  }
+
+  // 返回首页
+  goBack() {
+    // 使用 router.pushUrl 跳转到首页
+    router.pushUrl({
+      url: 'pages/Index'
+    });
   }
 
   // 获取阶段颜色
   getPhaseColor(phase: string): string {
     switch (phase) {
       case 'period':
-        return '#FF6B6B'; // 红色
+        return '#FF6B6B';
       case 'ovulation':
-        return '#FFD93D'; // 黄色
+        return '#FFD93D';
       case 'fertile':
-        return '#FF9F43'; // 橙色
+        return '#FF9F43';
       case 'safe':
-        return '#6BCB77'; // 绿色
-      case 'approaching':
-        return '#FF8787'; // 浅红色
+        return '#6BCB77';
+      case 'upcoming':
+        return '#FF8787';
       default:
-        return 'transparent'; // 透明
+        return '#CCCCCC';
     }
   }
 
@@ -81,63 +114,35 @@ struct CalendarPage {
         return '易孕期';
       case 'safe':
         return '安全期';
-      case 'approaching':
+      case 'upcoming':
         return '即将经期';
       default:
         return '';
     }
   }
 
-  // 上一个月
-  prevMonth() {
-    if (this.currentMonth === 0) {
-      this.currentMonth = 11;
-      this.currentYear--;
-    } else {
-      this.currentMonth--;
-    }
-    this.generateCalendarDays();
-  }
-
-  // 下一个月
-  nextMonth() {
-    if (this.currentMonth === 11) {
-      this.currentMonth = 0;
-      this.currentYear++;
-    } else {
-      this.currentMonth++;
-    }
-    this.generateCalendarDays();
-  }
-
-  // 返回首页
-  goBack() {
-    router.back();
-  }
-
-  aboutToAppear() {
-    this.generateCalendarDays();
-  }
-
+  // 组件构建
   build() {
     Column() {
-      // 顶部导航栏
+      // 顶部标题栏
       Row() {
         Button('返回')
-          .fontSize(16)
-          .fontColor(Color.White)
+          .width(60)
+          .height(36)
+          .fontSize(14)
+          .fontColor('#FFFFFF')
           .backgroundColor('#FF6B6B')
-          .borderRadius(10)
+          .borderRadius(18)
           .onClick(() => this.goBack())
 
         Text(`${this.currentYear}年${this.currentMonth + 1}月`)
           .fontSize(18)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(500)
           .color('#333333')
 
         Button('切换月份')
           .fontSize(16)
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .backgroundColor('#4D96FF')
           .borderRadius(10)
           .onClick(() => {
@@ -145,20 +150,20 @@ struct CalendarPage {
           })
       }
       .width('90%')
-      .justifyContent(FlexAlign.SpaceBetween)
-      .alignItems(VerticalAlign.Center)
+      .justifyContent('space-between')
+      .alignItems('center')
       .margin({ top: 20, bottom: 20 })
 
       // 星期标题
       Row() {
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        weekdays.forEach(weekday => {
+        ForEach(weekdays, (weekday: string) => {
           Text(weekday)
             .width('14.28%')
             .fontSize(14)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(500)
             .color('#333333')
-            .textAlign(TextAlign.Center)
+            .textAlign('center')
         });
       }
       .width('90%')
@@ -174,8 +179,8 @@ struct CalendarPage {
                 Text(`${day.day}`)
                   .fontSize(16)
                   .color(day.isCurrentMonth ? '#333333' : '#CCCCCC')
-                  .fontWeight(day.isToday ? FontWeight.Bold : FontWeight.Normal)
-                  .textAlign(TextAlign.Center)
+                  .fontWeight(day.isToday ? 500 : 400)
+                  .textAlign('center')
 
                 // 阶段标记点
                 if (day.phase !== 'normal' && day.isCurrentMonth) {
@@ -196,13 +201,13 @@ struct CalendarPage {
                 Text(this.getPhaseText(day.phase))
                   .fontSize(10)
                   .color(this.getPhaseColor(day.phase))
-                  .textAlign(TextAlign.Center)
+                  .textAlign('center')
               }
             }
             .width('100%')
             .height(60)
-            .justifyContent(FlexAlign.Center)
-            .alignItems(ItemAlign.Center)
+            .justifyContent('center')
+            .alignItems('center')
             .backgroundColor(day.isToday ? '#FFF0F0' : 'transparent')
             .borderRadius(8)
             .onClick(() => {
@@ -223,7 +228,7 @@ struct CalendarPage {
           .width('45%')
           .height(40)
           .fontSize(14)
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .backgroundColor('#FF6B6B')
           .borderRadius(10)
           .onClick(() => this.prevMonth())
@@ -232,35 +237,106 @@ struct CalendarPage {
           .width('45%')
           .height(40)
           .fontSize(14)
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .backgroundColor('#4D96FF')
           .borderRadius(10)
           .onClick(() => this.nextMonth())
       }
       .width('90%')
-      .justifyContent(FlexAlign.SpaceBetween)
+      .justifyContent('space-between')
       .margin({ top: 20, bottom: 20 })
 
       // 图例说明
       Column() {
         Text('图例说明')
           .fontSize(16)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(500)
           .color('#333333')
-          .alignSelf(ItemAlign.Start)
           .margin({ bottom: 15 })
 
-        Flex({ direction: FlexDirection.Column, gap: 10 }) {
-          this.renderLegendItem('月经期', '#FF6B6B')
-          this.renderLegendItem('排卵日', '#FFD93D')
-          this.renderLegendItem('易孕期', '#FF9F43')
-          this.renderLegendItem('安全期', '#6BCB77')
-          this.renderLegendItem('即将经期', '#FF8787')
+        Column({
+          space: 10
+        }) {
+          // 直接在UI中渲染图例项，而不是调用方法
+          Row() {
+            Stack() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill('#FF6B6B')
+            }
+            .margin({ right: 10 })
+
+            Text('月经期')
+              .fontSize(14)
+              .color('#666666')
+          }
+          .alignItems('center')
+
+          Row() {
+            Stack() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill('#FFD93D')
+            }
+            .margin({ right: 10 })
+
+            Text('排卵日')
+              .fontSize(14)
+              .color('#666666')
+          }
+          .alignItems('center')
+
+          Row() {
+            Stack() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill('#FF9F43')
+            }
+            .margin({ right: 10 })
+
+            Text('易孕期')
+              .fontSize(14)
+              .color('#666666')
+          }
+          .alignItems('center')
+
+          Row() {
+            Stack() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill('#6BCB77')
+            }
+            .margin({ right: 10 })
+
+            Text('安全期')
+              .fontSize(14)
+              .color('#666666')
+          }
+          .alignItems('center')
+
+          Row() {
+            Stack() {
+              Circle()
+                .width(12)
+                .height(12)
+                .fill('#FF8787')
+            }
+            .margin({ right: 10 })
+
+            Text('即将经期')
+              .fontSize(14)
+              .color('#666666')
+          }
+          .alignItems('center')
         }
       }
       .width('90%')
       .padding(20)
-      .backgroundColor(Color.White)
+      .backgroundColor('#FFFFFF')
       .borderRadius(15)
       .shadow({
         radius: 10,
@@ -289,6 +365,6 @@ struct CalendarPage {
         .fontSize(14)
         .color('#666666')
     }
-    .alignItems(VerticalAlign.Center)
+    .alignItems('center')
   }
 }

@@ -41,6 +41,21 @@ export interface UserSettings {
   onboardingCompleted: boolean; // 是否完成新手引导
 }
 
+// 周期统计信息接口
+export interface CycleStats {
+  averageCycleLength: number;
+  averagePeriodLength: number;
+  recordCount: number;
+  cycleVariability: number;
+}
+
+// 周期趋势数据接口
+export interface CycleTrendData {
+  dates: string[];
+  cycleLengths: number[];
+  periodLengths: number[];
+}
+
 export class PeriodData {
   private records: PeriodRecord[] = [];
   private settings: UserSettings;
@@ -189,12 +204,7 @@ export class PeriodData {
   }
 
   // 获取周期统计信息
-  getCycleStats(): {
-    averageCycleLength: number;
-    averagePeriodLength: number;
-    recordCount: number;
-    cycleVariability: number;
-  } {
+  getCycleStats(): CycleStats {
     return {
       averageCycleLength: PeriodCalculator.calculateAverageCycleLength(this.records),
       averagePeriodLength: PeriodCalculator.calculateAveragePeriodLength(this.records),
@@ -204,11 +214,7 @@ export class PeriodData {
   }
 
   // 获取周期趋势数据（用于图表展示）
-  getCycleTrendData(): {
-    dates: string[];
-    cycleLengths: number[];
-    periodLengths: number[];
-  } {
+  getCycleTrendData(): CycleTrendData {
     return PeriodCalculator.generateCycleTrendData(this.records);
   }
 

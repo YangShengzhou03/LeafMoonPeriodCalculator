@@ -1,8 +1,8 @@
 import { PeriodData, Symptom } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Color, FontWeight, FlexAlign, FlexDirection, ItemAlign, VerticalAlign, ProgressType, SliderStyle, Animation, TranslateAnimation } from '@kit.ArkUI';
+import { Slider } from '@kit.ArkUI';
 import { router } from '@kit.ArkUI';
-import { AlertDialog, DatePickerDialog, Select, SelectOption, Slider } from '@kit.ArkUI';
+import { AlertDialog } from '@kit.ArkUI';
 import { Onboarding } from '../components/Onboarding';
 
 @Entry
@@ -144,8 +144,8 @@ struct Index {
         Column() {
           Text('LeafMoon')
             .fontSize(28)
-            .fontWeight(FontWeight.Bold)
-            .color(Color.White)
+            .fontWeight(700)
+            .color('#FFFFFF')
             .margin({ bottom: 4 })
           Text('生理期计算器')
             .fontSize(16)
@@ -191,7 +191,7 @@ struct Index {
       Column() {
         Text(this.getCurrentPhase())
           .fontSize(24)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(700)
           .color(this.getPhaseColor())
           .margin({ bottom: 10 })
         Text(`距离下次月经还有 ${this.getDaysUntilNextPeriod()} 天`)
@@ -201,7 +201,7 @@ struct Index {
       .width('90%')
       .padding(28)
       .margin({ top: -40 })
-      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
       .borderRadius(20)
       .shadow({
         radius: 16,
@@ -221,7 +221,7 @@ struct Index {
           .width('22%')
           .height(56)
           .backgroundColor('#FF6B6B')
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .fontSize(16)
           .borderRadius(16)
           .shadow({
@@ -241,7 +241,7 @@ struct Index {
           .width('22%')
           .height(56)
           .backgroundColor('#FF9F43')
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .fontSize(16)
           .borderRadius(16)
           .shadow({
@@ -271,7 +271,7 @@ struct Index {
           .width('22%')
           .height(56)
           .backgroundColor('#4D96FF')
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .fontSize(16)
           .borderRadius(16)
           .shadow({
@@ -295,7 +295,7 @@ struct Index {
           .width('22%')
           .height(56)
           .backgroundColor('#9C27B0')
-          .fontColor(Color.White)
+          .fontColor('#FFFFFF')
           .fontSize(16)
           .borderRadius(16)
           .shadow({
@@ -316,23 +316,23 @@ struct Index {
           })
       }
       .width('90%')
-      .justifyContent(FlexAlign.SpaceBetween)
+      .justifyContent('SpaceBetween')
       .margin({ top: 24 })
 
       // 预测信息卡片
       Column() {
         Text('周期预测')
           .fontSize(20)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(700)
           .color(this.darkMode ? '#FFFFFF' : '#333333')
-          .alignSelf(ItemAlign.Start)
+          .alignSelf('Start')
           .margin({ bottom: 16 })
 
         const latestRecord = this.periodData.getLatestRecord();
         const settings = this.periodData.getSettings();
         const prediction = PeriodCalculator.predictNextPeriod(latestRecord, settings);
 
-        Flex({ direction: FlexDirection.Column, gap: 18 }) {
+        Flex({ direction: 'Column', gap: 18 }) {
           Row() {
             Text('下次月经:')
               .width(100)
@@ -340,7 +340,7 @@ struct Index {
               .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.nextPeriod))
               .fontSize(16)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(700)
               .color('#FF6B6B')
           }
 
@@ -351,7 +351,7 @@ struct Index {
               .color(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.ovulationDay))
               .fontSize(16)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(700)
               .color('#FFD93D')
           }
 
@@ -365,7 +365,7 @@ struct Index {
               `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
             )
               .fontSize(16)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(700)
               .color('#FF9F43')
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -381,7 +381,7 @@ struct Index {
               `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
             )
               .fontSize(16)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(700)
               .color('#6BCB77')
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -392,7 +392,7 @@ struct Index {
       .width('90%')
       .padding(24)
       .margin({ top: 24 })
-      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
       .borderRadius(20)
       .shadow({
         radius: 16,
@@ -406,9 +406,9 @@ struct Index {
         Row() {
           Text('症状记录')
             .fontSize(20)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(700)
             .color(this.darkMode ? '#FFFFFF' : '#333333')
-            .alignSelf(ItemAlign.Start)
+            .alignSelf('Start')
 
           Button(this.showSymptomList ? '收起' : '展开')
             .fontSize(14)
@@ -423,9 +423,9 @@ struct Index {
               curve: Curve.EaseInOut
             })
         }
-        .justifyContent(FlexAlign.SpaceBetween)
+        .justifyContent('SpaceBetween')
         .width('100%')
-        .alignItems(VerticalAlign.Center)
+        .alignItems('Center')
         .margin({ bottom: 16 })
 
         const symptoms = this.getCurrentPeriodSymptoms();
@@ -439,14 +439,14 @@ struct Index {
                     Text(symptom.name)
                       .width(100)
                       .fontSize(16)
-                      .fontWeight(FontWeight.Medium)
+                      .fontWeight(500)
                       .color(this.darkMode ? '#DDDDDD' : '#555555')
                     
                     // 症状程度进度条
                     Progress({
                       value: symptom.value,
                       total: 10,
-                      type: ProgressType.Linear
+                      type: 'Linear'
                     })
                     .width('55%')
                     .height(10)
@@ -457,11 +457,11 @@ struct Index {
                     Text(`${symptom.value}`)
                       .width(30)
                       .fontSize(16)
-                      .fontWeight(FontWeight.Medium)
+                      .fontWeight(500)
                       .color('#FF9F43')
                       .textAlign(TextAlign.End)
                   }
-                  .alignItems(VerticalAlign.Center)
+                  .alignItems('Center')
                   .padding({ vertical: 12, horizontal: 8 })
                   .backgroundColor(this.darkMode ? '#444444' : '#FFFFFF')
                   .borderRadius(12)
@@ -484,7 +484,7 @@ struct Index {
       .width('90%')
       .padding(24)
       .margin({ top: 24 })
-      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
       .borderRadius(20)
       .shadow({
         radius: 16,
@@ -514,7 +514,7 @@ struct Index {
                 .margin({ bottom: 8 })
               Text(`${PeriodCalculator.calculateAverageCycleLength(records)} 天`)
                 .fontSize(22)
-                .fontWeight(FontWeight.Bold)
+                .fontWeight(700)
                 .color('#FF6B6B')
             }
             .padding(20)
@@ -612,7 +612,7 @@ struct Index {
       .width('90%')
       .padding(24)
       .margin({ top: 24, bottom: 32 })
-      .backgroundColor(this.darkMode ? '#333333' : Color.White)
+      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
       .borderRadius(20)
       .shadow({
         radius: 16,
@@ -623,22 +623,45 @@ struct Index {
 
       // 日期选择器对话框
       if (this.showDatePicker) {
-        DatePickerDialog({
-          start: new Date(2020, 0, 1),
-          end: new Date(2030, 11, 31),
-          selected: this.selectedDate
-        })
-          .onChange((value) => {
-            this.selectedDate = new Date(value.year, value.month, value.day);
-          })
-          .onAccept(() => {
-            this.addPeriodRecord();
-            this.showDatePicker = false;
-          })
-          .onCancel(() => {
-            this.showDatePicker = false;
-          })
-          .show();
+        AlertDialog.show({
+          title: '选择日期',
+          message: '',
+          primaryButton: {
+            value: '取消',
+            action: () => {
+              this.showDatePicker = false;
+            }
+          },
+          secondaryButton: {
+            value: '确定',
+            action: () => {
+              this.addPeriodRecord();
+              this.showDatePicker = false;
+            }
+          },
+          builder: () => {
+            // 使用文本输入框让用户输入日期
+            TextInput({
+              placeholder: 'YYYY-MM-DD',
+              text: `${this.selectedDate.getFullYear()}-${String(this.selectedDate.getMonth() + 1).padStart(2, '0')}-${String(this.selectedDate.getDate()).padStart(2, '0')}`
+            })
+            .width('100%')
+            .height(44)
+            .margin(20)
+            .onChange((value) => {
+              // 简单的日期格式验证
+              const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+              if (dateRegex.test(value)) {
+                const parts = value.split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const day = parseInt(parts[2]);
+                this.selectedDate = new Date(year, month, day);
+              }
+            })
+          },
+          autoCancel: true
+        });
       }
 
       // 症状记录对话框
@@ -664,19 +687,49 @@ struct Index {
               Text('选择症状:')
                 .fontSize(14)
                 .color('#666666')
-                .alignSelf(ItemAlign.Start)
+                .alignSelf('Start')
                 .margin({ bottom: 10 })
 
-              Select() {
-                ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
-                  SelectOption(symptom)
-                    .value(symptom)
-                })
+              // 使用Column和Button实现自定义选择列表
+              Column() {
+                Button(this.selectedSymptom || '请选择症状')
+                  .width('100%')
+                  .height(44)
+                  .backgroundColor('#FFFFFF')
+                  .borderRadius(8)
+                  .borderWidth(1)
+                  .borderColor('#E0E0E0')
+                  .margin({ bottom: 10 })
+                  .onClick(() => {
+                    this.showSymptomList = !this.showSymptomList;
+                  })
+
+                if (this.showSymptomList) {
+                  Column()
+                    .width('100%')
+                    .backgroundColor('#FFFFFF')
+                    .borderRadius(8)
+                    .borderWidth(1)
+                    .borderColor('#E0E0E0')
+                    .padding(8)
+                    .maxHeight(200)
+                    .overflow('Scroll')
+                  {
+                    ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
+                      Button(symptom)
+                        .width('100%')
+                        .height(40)
+                        .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                        .borderRadius(4)
+                        .margin({ bottom: 4 })
+                        .onClick(() => {
+                          this.selectedSymptom = symptom;
+                          this.showSymptomList = false;
+                        })
+                    })
+                  }
+                }
               }
-              .value(this.selectedSymptom)
-              .onSelect((value) => {
-                this.selectedSymptom = value;
-              })
               .width('100%')
               .margin({ bottom: 20 })
 
@@ -691,8 +744,7 @@ struct Index {
                 value: this.symptomValue,
                 min: 0,
                 max: 10,
-                step: 1,
-                style: SliderStyle.OutSet
+                step: 1
               })
               .width('100%')
               .onChange((value) => {
@@ -710,14 +762,14 @@ struct Index {
           autoCancel: true
         });
       }
+      
+      // 新手引导
+      if (this.showOnboarding) {
+        Onboarding({ periodData: this.periodData });
+      }
     }
     .width('100%')
     .height('100%')
     .backgroundColor(this.darkMode ? '#1A1A1A' : '#F5F5F5')
-      
-    // 新手引导
-    if (this.showOnboarding) {
-      Onboarding({ periodData: this.periodData });
-    }
   }
 }

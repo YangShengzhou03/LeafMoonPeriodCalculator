@@ -1,6 +1,12 @@
 // 周期计算工具类
 import { PeriodRecord, PredictionResult, UserSettings } from '../model/PeriodData';
 
+// 定义周期统计结果接口
+interface CycleStats {
+  average: number;
+  stdDev: number;
+}
+
 export class PeriodCalculator {
   // 添加天数到日期
   private static addDays(date: Date, days: number): Date {
@@ -32,7 +38,7 @@ export class PeriodCalculator {
   }
 
   // 计算周期的统计数据
-  private static calculateCycleStats(records: PeriodRecord[]): { average: number; stdDev: number } {
+  private static calculateCycleStats(records: PeriodRecord[]): CycleStats {
     if (records.length < 2) {
       return { average: 28, stdDev: 2 }; // 默认值
     }

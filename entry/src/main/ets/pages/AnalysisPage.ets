@@ -1,12 +1,11 @@
-import { Column, Row, Text, Button, ScrollView, NavigationTitle, Divider } from '@kit.ArkUI';
-import { useRouter } from '@kit.ArkUI';
 import { TrendChart } from '../components/TrendChart';
 import { PeriodData } from '../model/PeriodData';
+import router from '@ohos.router';
+import { FontWeight } from '@ohos.syscapability.arkui.arkui';
 
 @Entry
 @Component
 struct AnalysisPage {
-  private router = useRouter();
   private periodData = PeriodData.getInstance();
 
   // 获取趋势数据
@@ -45,7 +44,7 @@ struct AnalysisPage {
       .width('100%')
       .height(56)
       .padding({ left: 16, right: 16 })
-      .alignItems(VerticalAlign.Center)
+      .alignItems('Center')
 
       ScrollView() {
         Column() {
