@@ -9,7 +9,7 @@ export interface OnboardingStep {
 
 @Component
 export struct Onboarding {
-  private periodData: PeriodData;
+  private periodData!: PeriodData;
   private currentStep: number = 0;
   private steps: Array<OnboardingStep> = [
     {
@@ -66,7 +66,7 @@ export struct Onboarding {
   @Builder
   private renderIndicator() {
     Row() {
-      ForEach(this.steps, (_, index) => {
+      ForEach(this.steps, (step: OnboardingStep, index: number) => {
         Ellipse()
           .width(index === this.currentStep ? 24 : 12)
           .height(12)

@@ -89,7 +89,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#FF6B6B')
               }
-              .flexGrow(1)
+              .layoutWeight(1)
               .alignItems(HorizontalAlign.Center)
 
               Divider()
@@ -109,7 +109,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#4ECDC4')
               }
-              .flexGrow(1)
+              .layoutWeight(1)
               .alignItems(HorizontalAlign.Center)
             }
 
@@ -129,7 +129,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#95E1D3')
               }
-              .flexGrow(1)
+              .layoutWeight(1)
               .alignItems(HorizontalAlign.Center)
 
               Divider()
@@ -216,7 +216,7 @@ struct AnalysisPage {
         }
         .padding(16)
       }
-      .flexGrow(1)
+      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

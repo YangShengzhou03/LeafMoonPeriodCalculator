@@ -207,7 +207,7 @@ export class StorageService {
   async exportData(): Promise<string | null> {
     try {
       // 获取应用文档目录
-      const context = common.getApplicationContext();
+      const context: common.Context = common.getApplicationContext();
       const documentsDir: string = context.filesDir;
       
       // 生成唯一的文件名
@@ -317,7 +317,7 @@ export class StorageService {
   // 获取导出文件列表
   async getExportFiles(): Promise<string[]> {
     try {
-      const context = common.getApplicationContext();
+      const context: common.Context = common.getApplicationContext();
       const documentsDir: string = context.filesDir;
       
       // 使用fileIo.listFile获取文件列表

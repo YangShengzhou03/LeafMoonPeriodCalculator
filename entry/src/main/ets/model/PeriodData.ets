@@ -272,7 +272,7 @@ export class PeriodData {
         startDate: record.startDate,
         cycleDays: record.cycleLength,
         periodDays: record.periodLength
-      })); 
+      } as CycleData)); 
       this.calculator = new PeriodCalculator(cycleData); 
       
       // 保存到存储 

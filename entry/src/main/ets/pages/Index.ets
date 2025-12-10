@@ -8,7 +8,7 @@ import { Onboarding } from '../components/Onboarding';
 @Entry
 @Component
 struct Index {
-  @State periodData: PeriodData = new PeriodData();
+  @State periodData!: PeriodData = new PeriodData();
   @State currentDate: Date = new Date();
   @State showDatePicker: boolean = false;
   @State selectedDate: Date = new Date();
@@ -146,7 +146,8 @@ struct Index {
             .fontSize(28)
             .fontWeight(700)
             .fontColor('#FFFFFF')
-            .margin({ bottom: 4 })
+            .margin({ bottom: 4 });
+            
           Text('生理期计算器')
             .fontSize(16)
             .fontColor('rgba(255, 255, 255, 0.9)')
@@ -173,7 +174,7 @@ struct Index {
             duration: 200,
             curve: Curve.EaseInOut
           })
-        }
+        })
       .width('100%')
       .height(140)
       .backgroundGradient({

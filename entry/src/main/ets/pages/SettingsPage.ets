@@ -195,7 +195,7 @@ struct SettingsPage {
       .width('100%')
       .height(60)
       .padding({ left: 20, right: 20 })
-      .alignItems('center')
+      .alignItems(HorizontalAlign.Center)
 
       // 内容区域
       Column() {

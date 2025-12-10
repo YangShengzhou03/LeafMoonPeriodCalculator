@@ -182,7 +182,7 @@ struct CalendarPage {
                   .fontSize(16)
                   .color(day.isCurrentMonth ? '#333333' : '#CCCCCC')
                   .fontWeight(day.isToday ? 500 : 400)
-                  .textAlign('center')
+                  .textAlign(TextAlign.Center)
 
                 // 阶段标记点
                 if (day.phase !== 'normal' && day.isCurrentMonth) {
