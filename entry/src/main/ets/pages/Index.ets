@@ -1,5 +1,6 @@
-import { PeriodData, Symptom } from '../model/PeriodData';
+import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Grid } from '@kit.ArkUI';
 import { Slider } from '@kit.ArkUI';
 import router from '@ohos.router';
 import { AlertDialog } from '@kit.ArkUI';
@@ -8,7 +9,7 @@ import { Onboarding } from '../components/Onboarding';
 @Entry
 @Component
 struct Index {
-  @State periodData!: PeriodData = new PeriodData();
+  @State periodData: PeriodData = new PeriodData();
   @State currentDate: Date = new Date();
   @State showDatePicker: boolean = false;
   @State selectedDate: Date = new Date();
@@ -95,7 +96,7 @@ struct Index {
   }
 
   // 添加周期记录
-  async addPeriodRecord() {
+  async addPeriodRecord(): Promise<void> {
     const settings = this.periodData.getSettings();
     const periodId = await this.periodData.addRecord({
       startDate: this.selectedDate,
@@ -138,43 +139,48 @@ struct Index {
 
   build() {
     Stack() {
-      Column() {
-        // 顶部信息栏
-        Stack() {
-          Column() {
-            Text('LeafMoon')
+      // 背景颜色
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor(this.darkMode ? '#1A1A1A' : '#F5F5F5')
+
+      // 顶部信息栏
+      Stack() {
+        Column() {
+          Text('LeafMoon')
             .fontSize(28)
             .fontWeight(700)
             .fontColor('#FFFFFF')
-            .margin({ bottom: 4 });
-            
+            .margin({ bottom: 4 })
+          
           Text('生理期计算器')
             .fontSize(16)
             .fontColor('rgba(255, 255, 255, 0.9)')
-          }
-          .padding(20)
-          .alignItems(HorizontalAlign.Center)
+        }
+        .padding(20)
+        .alignItems(HorizontalAlign.Center)
 
-          // 设置按钮
-          Button() {
-            Text('⚙️')
-              .fontSize(22)
-          }
-          .type(ButtonType.Circle)
-          .backgroundColor('rgba(255, 255, 255, 0.2)')
-          .width(44)
-          .height(44)
-          .position({ x: '90%', y: 20 })
-          .onClick(() => {
-            router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
-              console.error('导航失败:', err);
-            });
-          })
-          .animation({
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
+        // 设置按钮
+        Button() {
+          Text('⚙️')
+            .fontSize(22)
+        }
+        .type(ButtonType.Circle)
+        .backgroundColor('rgba(255, 255, 255, 0.2)')
+        .width(44)
+        .height(44)
+        .position({ x: '90%', y: 20 })
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+            console.error('导航失败:', err);
+          });
         })
+        .animation({
+          duration: 200,
+          curve: Curve.EaseInOut
+        })
+      }
       .width('100%')
       .height(140)
       .backgroundGradient({
@@ -189,253 +195,257 @@ struct Index {
         offsetY: 5
       })
 
-      // 当前状态卡片
+      // 主内容区域
       Column() {
-        Text(this.getCurrentPhase())
-          .fontSize(24)
-          .fontWeight(700)
-          .color(this.getPhaseColor())
-          .margin({ bottom: 10 })
-        Text(`距离下次月经还有 ${this.getDaysUntilNextPeriod()} 天`)
-          .fontSize(16)
-          .color(this.darkMode ? '#AAAAAA' : '#666666')
-      }
-      .width('90%')
-      .padding(28)
-      .margin({ top: -40 })
-      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
-      .borderRadius(20)
-      .shadow({
-        radius: 16,
-        color: 'rgba(0, 0, 0, 0.12)',
-        offsetX: 0,
-        offsetY: 8
-      })
-      .animation({
-        duration: 300,
-        curve: Curve.EaseOut
-      })
-
-      // 快捷操作按钮
-      Row() {
-        Button('记录月经')
-          .width('22%')
-          .height(56)
-          .backgroundColor('#FF6B6B')
-          .fontColor('#FFFFFF')
-          .fontSize(16)
-          .borderRadius(16)
-          .shadow({
-            radius: 8,
-            color: 'rgba(255, 107, 107, 0.2)',
-            offsetX: 0,
-            offsetY: 4
-          })
-          .onClick(() => this.openDatePicker())
-          .animation({
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
-
-        Button('记录症状')
-          .width('22%')
-          .height(56)
-          .backgroundColor('#FF9F43')
-          .fontColor('#FFFFFF')
-          .fontSize(16)
-          .borderRadius(16)
-          .shadow({
-            radius: 8,
-            color: 'rgba(255, 159, 67, 0.2)',
-            offsetX: 0,
-            offsetY: 4
-          })
-          .onClick(() => {
-            const latestRecord = this.periodData.getLatestRecord();
-            if (latestRecord) {
-              this.currentPeriodId = latestRecord.id;
-              this.selectedDate = new Date();
-              this.showSymptomDialog = true;
-            } else {
-              // 如果没有周期记录，先引导用户记录月经
-              this.openDatePicker();
-            }
-          })
-          .animation({
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
-
-        Button('查看日历')
-          .width('22%')
-          .height(56)
-          .backgroundColor('#4D96FF')
-          .fontColor('#FFFFFF')
-          .fontSize(16)
-          .borderRadius(16)
-          .shadow({
-            radius: 8,
-            color: 'rgba(77, 150, 255, 0.2)',
-            offsetX: 0,
-            offsetY: 4
-          })
-          .onClick(() => {
-            router.pushUrl({
-              url: 'pages/CalendarPage'
-            }).catch((err: Error) => {
-              console.error('导航失败:', err);
-            });
-          })
-          .animation({
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
-
-        Button('查看分析')
-          .width('22%')
-          .height(56)
-          .backgroundColor('#9C27B0')
-          .fontColor('#FFFFFF')
-          .fontSize(16)
-          .borderRadius(16)
-          .shadow({
-            radius: 8,
-            color: 'rgba(156, 39, 176, 0.2)',
-            offsetX: 0,
-            offsetY: 4
-          })
-          .onClick(() => {
-            router.pushUrl({
-              url: 'pages/AnalysisPage'
-            }).catch((err: Error) => {
-              console.error('导航失败:', err);
-            });
-          })
-          .animation({
-          duration: 200,
-          curve: Curve.EaseInOut
-        })
-      }
-      .width('90%')
-      .justifyContent('SpaceBetween')
-      .margin({ top: 24 })
-
-      // 预测信息卡片
-      Column() {
-        Text('周期预测')
-          .fontSize(20)
-          .fontWeight(700)
-          .fontColor(this.darkMode ? '#FFFFFF' : '#333333')
-          .alignSelf('Start')
-          .margin({ bottom: 16 })
-
-        const latestRecord = this.periodData.getLatestRecord();
-        const settings = this.periodData.getSettings();
-        const prediction = PeriodCalculator.predictNextPeriod(latestRecord, settings);
-
-        Flex({ direction: 'Column', gap: 18 }) {
-          Row() {
-            Text('下次月经:')
-              .width(100)
-              .fontSize(16)
-              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-            Text(PeriodCalculator.formatDate(prediction.nextPeriod))
-              .fontSize(16)
-              .fontWeight(700)
-              .fontColor('#FF6B6B')
-          }
-
-          Row() {
-            Text('排卵日:')
-              .width(100)
-              .fontSize(16)
-              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-            Text(PeriodCalculator.formatDate(prediction.ovulationDay))
-              .fontSize(16)
-              .fontWeight(700)
-              .fontColor('#FFD93D')
-          }
-
-          Row() {
-            Text('易孕期:')
-              .width(100)
-              .fontSize(16)
-              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-            Text(
-              `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ` +
-              `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
-            )
-              .fontSize(16)
-              .fontWeight(700)
-              .fontColor('#FF9F43')
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-          }
-
-          Row() {
-            Text('安全期:')
-              .width(100)
-              .fontSize(16)
-              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-            Text(
-              `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ` +
-              `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
-            )
-              .fontSize(16)
-              .fontWeight(700)
-              .fontColor('#6BCB77')
-              .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-          }
-        }
-        .margin({ top: 5 })
-      }
-      .width('90%')
-      .padding(24)
-      .margin({ top: 24 })
-      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
-      .borderRadius(20)
-      .shadow({
-        radius: 16,
-        color: 'rgba(0, 0, 0, 0.12)',
-        offsetX: 0,
-        offsetY: 8
-      })
-
-      // 症状记录卡片
-      Column() {
-        Row() {
-          Text('症状记录')
-            .fontSize(20)
+        // 当前状态卡片
+        Column() {
+          Text(this.getCurrentPhase())
+            .fontSize(24)
             .fontWeight(700)
-            .color(this.darkMode ? '#FFFFFF' : '#333333')
-            .alignSelf('Start')
+            .color(this.getPhaseColor())
+            .margin({ bottom: 10 })
+          Text(`距离下次月经还有 ${this.getDaysUntilNextPeriod()} 天`)
+            .fontSize(16)
+            .color(this.darkMode ? '#AAAAAA' : '#666666')
+        }
+        .width('90%')
+        .padding(28)
+        .margin({ top: -40 })
+        .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
+        .borderRadius(20)
+        .shadow({
+          radius: 16,
+          color: 'rgba(0, 0, 0, 0.12)',
+          offsetX: 0,
+          offsetY: 8
+        })
+        .animation({
+          duration: 300,
+          curve: Curve.EaseOut
+        })
 
-          Button(this.showSymptomList ? '收起' : '展开')
-            .fontSize(14)
-            .fontColor('#4D96FF')
-            .backgroundColor(this.darkMode ? 'rgba(77, 150, 255, 0.2)' : 'rgba(77, 150, 255, 0.1)')
-            .borderRadius(20)
-            .padding({ horizontal: 16, vertical: 6 })
-            .onClick(() => this.showSymptomList = !this.showSymptomList)
+        // 快捷操作按钮
+        Row() {
+          Button('记录月经')
+            .width('22%')
+            .height(56)
+            .backgroundColor('#FF6B6B')
+            .fontColor('#FFFFFF')
+            .fontSize(16)
+            .borderRadius(16)
+            .shadow({
+              radius: 8,
+              color: 'rgba(255, 107, 107, 0.2)',
+              offsetX: 0,
+              offsetY: 4
+            })
+            .onClick(() => this.openDatePicker())
             .animation({
-              type: AnimationType.Scale,
               duration: 200,
               curve: Curve.EaseInOut
             })
-        }
-        .justifyContent('SpaceBetween')
-        .width('100%')
-        .alignItems('Center')
-        .margin({ bottom: 16 })
 
-        const symptoms = this.getCurrentPeriodSymptoms();
-        
-        if (this.showSymptomList || symptoms.length > 0) {
-          if (symptoms.length > 0) {
-            List() {
-              ForEach(symptoms, (symptom: Symptom) => {
-                ListItem() {
+          Button('记录症状')
+            .width('22%')
+            .height(56)
+            .backgroundColor('#FF9F43')
+            .fontColor('#FFFFFF')
+            .fontSize(16)
+            .borderRadius(16)
+            .shadow({
+              radius: 8,
+              color: 'rgba(255, 159, 67, 0.2)',
+              offsetX: 0,
+              offsetY: 4
+            })
+            .onClick(() => {
+              const latestRecord = this.periodData.getLatestRecord();
+              if (latestRecord) {
+                this.currentPeriodId = latestRecord.id;
+                this.selectedDate = new Date();
+                this.showSymptomDialog = true;
+              } else {
+                // 如果没有周期记录，先引导用户记录月经
+                this.openDatePicker();
+              }
+            })
+            .animation({
+              duration: 200,
+              curve: Curve.EaseInOut
+            })
+
+          Button('查看日历')
+            .width('22%')
+            .height(56)
+            .backgroundColor('#4D96FF')
+            .fontColor('#FFFFFF')
+            .fontSize(16)
+            .borderRadius(16)
+            .shadow({
+              radius: 8,
+              color: 'rgba(77, 150, 255, 0.2)',
+              offsetX: 0,
+              offsetY: 4
+            })
+            .onClick(() => {
+              router.pushUrl({
+                url: 'pages/CalendarPage'
+              }).catch((err: Error) => {
+                console.error('导航失败:', err);
+              });
+            })
+            .animation({
+              duration: 200,
+              curve: Curve.EaseInOut
+            })
+
+          Button('查看分析')
+            .width('22%')
+            .height(56)
+            .backgroundColor('#9C27B0')
+            .fontColor('#FFFFFF')
+            .fontSize(16)
+            .borderRadius(16)
+            .shadow({
+              radius: 8,
+              color: 'rgba(156, 39, 176, 0.2)',
+              offsetX: 0,
+              offsetY: 4
+            })
+            .onClick(() => {
+              router.pushUrl({
+                url: 'pages/AnalysisPage'
+              }).catch((err: Error) => {
+                console.error('导航失败:', err);
+              });
+            })
+            .animation({
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
+        }
+        .width('90%')
+        .justifyContent('SpaceBetween')
+        .margin({ top: 24 })
+
+        // 预测信息卡片
+        Column() {
+          Text('周期预测')
+            .fontSize(20)
+            .fontWeight(700)
+            .fontColor(this.darkMode ? '#FFFFFF' : '#333333')
+            .alignSelf('Start')
+            .margin({ bottom: 16 })
+
+          const latestRecord = this.periodData.getLatestRecord();
+          const settings = this.periodData.getSettings();
+          const prediction = PeriodCalculator.predictNextPeriod(latestRecord, settings);
+
+          Column() {
+            Row() {
+              Text('下次月经:')
+                .width(100)
+                .fontSize(16)
+                .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
+              Text(PeriodCalculator.formatDate(prediction.nextPeriod))
+                .fontSize(16)
+                .fontWeight(700)
+                .fontColor('#FF6B6B')
+            }
+            .margin({ bottom: 18 })
+
+            Row() {
+              Text('排卵日:')
+                .width(100)
+                .fontSize(16)
+                .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
+              Text(PeriodCalculator.formatDate(prediction.ovulationDay))
+                .fontSize(16)
+                .fontWeight(700)
+                .fontColor('#FFD93D')
+            }
+            .margin({ bottom: 18 })
+
+            Row() {
+              Text('易孕期:')
+                .width(100)
+                .fontSize(16)
+                .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
+              Text(
+                `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ` +
+                `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
+              )
+                .fontSize(16)
+                .fontWeight(700)
+                .fontColor('#FF9F43')
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+            }
+            .margin({ bottom: 18 })
+
+            Row() {
+              Text('安全期:')
+                .width(100)
+                .fontSize(16)
+                .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
+              Text(
+                `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ` +
+                `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
+              )
+                .fontSize(16)
+                .fontWeight(700)
+                .fontColor('#6BCB77')
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+            }
+          }
+          .margin({ top: 5 })
+        }
+        .width('90%')
+        .padding(24)
+        .margin({ top: 24 })
+        .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
+        .borderRadius(20)
+        .shadow({
+          radius: 16,
+          color: 'rgba(0, 0, 0, 0.12)',
+          offsetX: 0,
+          offsetY: 8
+        })
+
+        // 症状记录卡片
+        Column() {
+          Row() {
+            Text('症状记录')
+              .fontSize(20)
+              .fontWeight(700)
+              .color(this.darkMode ? '#FFFFFF' : '#333333')
+              .alignSelf('Start')
+
+            Button(this.showSymptomList ? '收起' : '展开')
+              .fontSize(14)
+              .fontColor('#4D96FF')
+              .backgroundColor(this.darkMode ? 'rgba(77, 150, 255, 0.2)' : 'rgba(77, 150, 255, 0.1)')
+              .borderRadius(20)
+              .padding({ horizontal: 16, vertical: 6 })
+              .onClick(() => this.showSymptomList = !this.showSymptomList)
+              .animation({
+                type: AnimationType.Scale,
+                duration: 200,
+                curve: Curve.EaseInOut
+              })
+          }
+          .justifyContent('SpaceBetween')
+          .width('100%')
+          .alignItems('Center')
+          .margin({ bottom: 16 })
+
+          const symptoms = this.getCurrentPeriodSymptoms();
+          
+          if (this.showSymptomList || symptoms.length > 0) {
+            if (symptoms.length > 0) {
+              Column() {
+                for (let symptom of symptoms) {
                   Row() {
                     Text(symptom.name)
                       .width(100)
@@ -468,46 +478,43 @@ struct Index {
                   .borderRadius(12)
                   .margin({ bottom: 8 })
                 }
-              })
+              }
+            } else {
+              Text('暂无症状记录，点击"记录症状"添加')
+                .fontSize(16)
+                .color(this.darkMode ? '#AAAAAA' : '#999999')
+                .margin({ top: 8 })
+                .padding(12)
+                .backgroundColor(this.darkMode ? '#444444' : '#F8F9FA')
+                .borderRadius(12)
             }
-            .divider({ strokeWidth: 0 })
-          } else {
-            Text('暂无症状记录，点击"记录症状"添加')
-              .fontSize(16)
-              .color(this.darkMode ? '#AAAAAA' : '#999999')
-              .margin({ top: 8 })
-              .padding(12)
-              .backgroundColor(this.darkMode ? '#444444' : '#F8F9FA')
-              .borderRadius(12)
           }
         }
-      }
-      .width('90%')
-      .padding(24)
-      .margin({ top: 24 })
-      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
-      .borderRadius(20)
-      .shadow({
-        radius: 16,
-        color: 'rgba(0, 0, 0, 0.12)',
-        offsetX: 0,
-        offsetY: 8
-      })
+        .width('90%')
+        .padding(24)
+        .margin({ top: 24 })
+        .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
+        .borderRadius(20)
+        .shadow({
+          radius: 16,
+          color: 'rgba(0, 0, 0, 0.12)',
+          offsetX: 0,
+          offsetY: 8
+        })
 
-      // 统计信息卡片
-      Column() {
-        Text('统计信息')
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .color(this.darkMode ? '#FFFFFF' : '#333333')
-          .alignSelf(ItemAlign.Start)
-          .margin({ bottom: 20 })
+        // 统计信息卡片
+        Column() {
+          Text('统计信息')
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .color(this.darkMode ? '#FFFFFF' : '#333333')
+            .alignSelf(ItemAlign.Start)
+            .margin({ bottom: 20 })
 
-        const records = this.periodData.getAllRecords();
-        const settings = this.periodData.getSettings();
+          const records = this.periodData.getAllRecords();
+          const settings = this.periodData.getSettings();
 
-        Grid() {
-          GridItem() {
+          Grid() {
             Column() {
               Text('平均周期')
                 .fontSize(14)
@@ -529,9 +536,7 @@ struct Index {
               offsetX: 0,
               offsetY: 4
             })
-          }
 
-          GridItem() {
             Column() {
               Text('平均经期')
                 .fontSize(14)
@@ -553,9 +558,7 @@ struct Index {
               offsetX: 0,
               offsetY: 4
             })
-          }
 
-          GridItem() {
             Column() {
               Text('记录次数')
                 .fontSize(14)
@@ -577,9 +580,7 @@ struct Index {
               offsetX: 0,
               offsetY: 4
             })
-          }
 
-          GridItem() {
             Column() {
               Text('周期波动')
                 .fontSize(14)
@@ -602,25 +603,25 @@ struct Index {
               offsetY: 4
             })
           }
+          .columnsTemplate('1fr 1fr')
+          .rowsTemplate('1fr 1fr')
+          .columnsGap(16)
+          .rowsGap(16)
+          .width('100%')
+          .height(300)
         }
-        .columnsTemplate('1fr 1fr')
-        .rowsTemplate('1fr 1fr')
-        .columnsGap(16)
-        .rowsGap(16)
-        .width('100%')
-        .height(300)
+        .width('90%')
+        .padding(24)
+        .margin({ top: 24, bottom: 32 })
+        .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
+        .borderRadius(20)
+        .shadow({
+          radius: 16,
+          color: 'rgba(0, 0, 0, 0.12)',
+          offsetX: 0,
+          offsetY: 8
+        })
       }
-      .width('90%')
-      .padding(24)
-      .margin({ top: 24, bottom: 32 })
-      .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
-      .borderRadius(20)
-      .shadow({
-        radius: 16,
-        color: 'rgba(0, 0, 0, 0.12)',
-        offsetX: 0,
-        offsetY: 8
-      })
 
       // 日期选择器对话框
       if (this.showDatePicker) {
@@ -715,20 +716,20 @@ struct Index {
                     .padding(8)
                     .maxHeight(200)
                     .overflow('Scroll')
-                  {
-                    ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
-                      Button(symptom)
-                        .width('100%')
-                        .height(40)
-                        .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
-                        .borderRadius(4)
-                        .margin({ bottom: 4 })
-                        .onClick(() => {
-                          this.selectedSymptom = symptom;
-                          this.showSymptomList = false;
-                        })
-                    })
-                  }
+                    .children([
+                      for (let symptom of this.periodData.getCommonSymptoms()) {
+                        Button(symptom)
+                          .width('100%')
+                          .height(40)
+                          .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                          .borderRadius(4)
+                          .margin({ bottom: 4 })
+                          .onClick(() => {
+                            this.selectedSymptom = symptom;
+                            this.showSymptomList = false;
+                          })
+                      }
+                    ])
                 }
               }
               .width('100%')
@@ -748,7 +749,7 @@ struct Index {
                 step: 1
               })
               .width('100%')
-              .onChange((value) => {
+              .onChange((value: number): void => {
                 this.symptomValue = value;
               })
 
@@ -766,11 +767,8 @@ struct Index {
       
       // 新手引导
       if (this.showOnboarding) {
-        Onboarding({ periodData: this.periodData });
+        Onboarding(this.periodData as PeriodData);
       }
     }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(this.darkMode ? '#1A1A1A' : '#F5F5F5')
   }
 }

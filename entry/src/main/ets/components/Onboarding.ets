@@ -9,7 +9,7 @@ export interface OnboardingStep {
 
 @Component
 export struct Onboarding {
-  private periodData!: PeriodData;
+  private periodData: PeriodData | undefined;
   private currentStep: number = 0;
   private steps: Array<OnboardingStep> = [
     {
@@ -34,6 +34,7 @@ export struct Onboarding {
     }
   ];
 
+  // 构造函数初始化periodData
   constructor(periodData: PeriodData) {
     this.periodData = periodData;
   }
@@ -89,9 +90,11 @@ export struct Onboarding {
   }
 
   private completeOnboarding() {
-    const settings = this.periodData.getSettings();
-    settings.onboardingCompleted = true;
-    this.periodData.updateSettings(settings);
+    if (this.periodData) {
+      const settings = this.periodData.getSettings();
+      settings.onboardingCompleted = true;
+      this.periodData.updateSettings(settings);
+    }
   }
 
   build() {

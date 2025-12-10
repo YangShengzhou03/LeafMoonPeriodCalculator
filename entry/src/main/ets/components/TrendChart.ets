@@ -1,4 +1,6 @@
-import { Stack, Canvas, CanvasRenderingContext2D } from '@ohos.canvas';
+import { Stack, Row, Canvas, Text } from '@ohos.arkui';
+import { CanvasRenderingContext2D } from '@ohos.canvas.canvas';
+import { FlexAlign } from '@ohos.arkui';
 
 export interface ChartData {
   dates: string[];
@@ -9,11 +11,11 @@ export interface ChartData {
 @Component
 export struct TrendChart {
   @Prop data: ChartData;
-  @Prop width: number;
-  @Prop height: number;
+  @Prop chartWidth: number;
+  @Prop chartHeight: number;
 
   // 图表配置
-  private readonly padding: number = 40;
+  private readonly chartPadding: number = 40;
   private readonly lineWidth: number = 2;
   private readonly dotRadius: number = 4;
   private readonly gridColor: string = '#E0E0E0';
@@ -25,15 +27,15 @@ export struct TrendChart {
     Stack() {
       // 图表画布
       Canvas(this.onDrawChart)
-        .width(this.width)
-        .height(this.height)
+        .width(this.chartWidth)
+        .height(this.chartHeight)
         .backgroundColor('#FFFFFF')
 
       // 图例
       Row() {
         // 周期长度图例
         Row() {
-          Canvas((context) => {
+          Canvas((context: CanvasRenderingContext2D) => {
             context.strokeStyle = this.cycleLineColor;
             context.lineWidth = this.lineWidth;
             context.beginPath();
@@ -60,7 +62,7 @@ export struct TrendChart {
         Row()
           .margin({ left: 20 })
         {
-          Canvas((context) => {
+          Canvas((context: CanvasRenderingContext2D) => {
             context.strokeStyle = this.periodLineColor;
             context.lineWidth = this.lineWidth;
             context.beginPath();
@@ -98,8 +100,8 @@ export struct TrendChart {
     }
 
     // 计算图表区域尺寸
-    const chartWidth = this.width - 2 * this.padding;
-    const chartHeight = this.height - 2 * this.padding;
+    const chartWidth = this.chartWidth - 2 * this.chartPadding;
+    const chartHeight = this.chartHeight - 2 * this.chartPadding;
 
     // 绘制网格
     this.drawGrid(context, chartWidth, chartHeight);
@@ -142,7 +144,7 @@ export struct TrendChart {
     context.font = '14px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText('暂无数据', this.width / 2, this.height / 2);
+    context.fillText('暂无数据', this.chartWidth / 2, this.chartHeight / 2);
   }
 
   // 绘制网格
@@ -153,20 +155,20 @@ export struct TrendChart {
     // 绘制垂直线
     const verticalLines = Math.min(6, this.data.dates.length - 1);
     for (let i = 0; i <= verticalLines; i++) {
-      const x = this.padding + (width / verticalLines) * i;
+      const x = this.chartPadding + (width / verticalLines) * i;
       context.beginPath();
-      context.moveTo(x, this.padding);
-      context.lineTo(x, this.padding + height);
+      context.moveTo(x, this.chartPadding);
+      context.lineTo(x, this.chartPadding + height);
       context.stroke();
     }
 
     // 绘制水平线
     const horizontalLines = 5;
     for (let i = 0; i <= horizontalLines; i++) {
-      const y = this.padding + (height / horizontalLines) * i;
+      const y = this.chartPadding + (height / horizontalLines) * i;
       context.beginPath();
-      context.moveTo(this.padding, y);
-      context.lineTo(this.padding + width, y);
+      context.moveTo(this.chartPadding, y);
+      context.lineTo(this.chartPadding + width, y);
       context.stroke();
     }
   }
@@ -192,8 +194,8 @@ export struct TrendChart {
     context.beginPath();
     
     for (let i = 0; i < values.length; i++) {
-      const x = this.padding + (i / (values.length - 1)) * width;
-      const y = this.padding + height - ((values[i] - minValue) / valueRange) * height;
+      const x = this.chartPadding + (i / (values.length - 1)) * width;
+      const y = this.chartPadding + height - ((values[i] - minValue) / valueRange) * height;
 
       if (i === 0) {
         context.moveTo(x, y);
@@ -207,8 +209,8 @@ export struct TrendChart {
     // 绘制数据点
     context.fillStyle = color;
     for (let i = 0; i < values.length; i++) {
-      const x = this.padding + (i / (values.length - 1)) * width;
-      const y = this.padding + height - ((values[i] - minValue) / valueRange) * height;
+      const x = this.chartPadding + (i / (values.length - 1)) * width;
+      const y = this.chartPadding + height - ((values[i] - minValue) / valueRange) * height;
       
       context.beginPath();
       context.arc(x, y, this.dotRadius, 0, Math.PI * 2);
@@ -235,9 +237,9 @@ export struct TrendChart {
     const step = Math.max(1, Math.floor(this.data.dates.length / labelCount));
     
     for (let i = 0; i < this.data.dates.length; i += step) {
-      const x = this.padding + (i / (this.data.dates.length - 1)) * width;
+      const x = this.chartPadding + (i / (this.data.dates.length - 1)) * width;
       const dateText = this.data.dates[i];
-      context.fillText(dateText, x, this.padding + height + 5);
+      context.fillText(dateText, x, this.chartPadding + height + 5);
     }
 
     // 绘制Y轴数值标签
@@ -246,9 +248,9 @@ export struct TrendChart {
     
     const yLabels = 5;
     for (let i = 0; i <= yLabels; i++) {
-      const y = this.padding + (i / yLabels) * height;
+      const y = this.chartPadding + (i / yLabels) * height;
       const value = Math.round(maxValue - (i / yLabels) * valueRange);
-      context.fillText(value.toString(), this.padding - 5, y);
+      context.fillText(value.toString(), this.chartPadding - 5, y);
     }
   }
 }

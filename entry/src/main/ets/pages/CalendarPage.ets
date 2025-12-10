@@ -1,6 +1,8 @@
 import { PeriodData } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
 import router from '@ohos.router';
+import { Text, Row, Stack, Circle, Column, Button } from '@ohos.arkui';
+import { TextAlign, FlexAlign, VerticalAlign } from '@ohos.arkui';
 
 // 日历天类型定义
 interface CalendarDay {
@@ -164,8 +166,8 @@ struct CalendarPage {
             .width('14.28%')
             .fontSize(14)
             .fontWeight(500)
-            .color('#333333')
-            .textAlign('center')
+            .fontColor('#333333')
+            .textAlign(TextAlign.Center)
         });
       }
       .width('90%')
@@ -180,7 +182,7 @@ struct CalendarPage {
                 // 日期数字
                 Text(`${day.day}`)
                   .fontSize(16)
-                  .color(day.isCurrentMonth ? '#333333' : '#CCCCCC')
+                  .fontColor(day.isCurrentMonth ? '#333333' : '#CCCCCC')
                   .fontWeight(day.isToday ? 500 : 400)
                   .textAlign(TextAlign.Center)
 
@@ -202,14 +204,14 @@ struct CalendarPage {
               if (day.phase !== 'normal' && day.isCurrentMonth) {
                 Text(this.getPhaseText(day.phase))
                   .fontSize(10)
-                  .color(this.getPhaseColor(day.phase))
-                  .textAlign('center')
+                  .fontColor(this.getPhaseColor(day.phase))
+                  .textAlign(TextAlign.Center)
               }
             }
             .width('100%')
             .height(60)
-            .justifyContent('center')
-            .alignItems('center')
+            .justifyContent(FlexAlign.Center)
+            .alignItems(VerticalAlign.Center)
             .backgroundColor(day.isToday ? '#FFF0F0' : 'transparent')
             .borderRadius(8)
             .onClick(() => {
@@ -245,7 +247,7 @@ struct CalendarPage {
           .onClick(() => this.nextMonth())
       }
       .width('90%')
-      .justifyContent('space-between')
+      .justifyContent(FlexAlign.SpaceBetween)
       .margin({ top: 20, bottom: 20 })
 
       // 图例说明
@@ -253,7 +255,7 @@ struct CalendarPage {
         Text('图例说明')
           .fontSize(16)
           .fontWeight(500)
-          .color('#333333')
+          .fontColor('#333333')
           .margin({ bottom: 15 })
 
         Column({
@@ -271,9 +273,9 @@ struct CalendarPage {
 
             Text('月经期')
               .fontSize(14)
-              .color('#666666')
+              .fontColor('#666666')
           }
-          .alignItems('center')
+          .alignItems(VerticalAlign.Center)
 
           Row() {
             Stack() {
@@ -286,9 +288,9 @@ struct CalendarPage {
 
             Text('排卵日')
               .fontSize(14)
-              .color('#666666')
+              .fontColor('#666666')
           }
-          .alignItems('center')
+          .alignItems(VerticalAlign.Center)
 
           Row() {
             Stack() {
@@ -301,9 +303,9 @@ struct CalendarPage {
 
             Text('易孕期')
               .fontSize(14)
-              .color('#666666')
+              .fontColor('#666666')
           }
-          .alignItems('center')
+          .alignItems(VerticalAlign.Center)
 
           Row() {
             Stack() {
@@ -316,9 +318,9 @@ struct CalendarPage {
 
             Text('安全期')
               .fontSize(14)
-              .color('#666666')
+              .fontColor('#666666')
           }
-          .alignItems('center')
+          .alignItems(VerticalAlign.Center)
 
           Row() {
             Stack() {
@@ -331,9 +333,9 @@ struct CalendarPage {
 
             Text('即将经期')
               .fontSize(14)
-              .color('#666666')
+              .fontColor('#666666')
           }
-          .alignItems('center')
+          .alignItems(VerticalAlign.Center)
         }
       }
       .width('90%')
@@ -352,21 +354,5 @@ struct CalendarPage {
     .backgroundColor('#F5F5F5')
   }
 
-  // 渲染图例项
-  renderLegendItem(text: string, color: string) {
-    Row() {
-      Stack() {
-        Circle()
-          .width(12)
-          .height(12)
-          .fill(color)
-      }
-      .margin({ right: 10 })
-
-      Text(text)
-        .fontSize(14)
-        .color('#666666')
-    }
-    .alignItems('center')
-  }
+  // 渲染图例项方法已移除，改为直接在UI中渲染
 }

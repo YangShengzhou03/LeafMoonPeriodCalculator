@@ -285,26 +285,28 @@ export class PeriodData {
 
   // 获取预测结果 
   getPrediction(): PredictionResult { 
-    const result = this.calculator.predictNextPeriod(); 
+    const result: CalculationResult = this.calculator.predictNextPeriod(); 
     
     // 计算易孕期（排卵日前5天到后2天）
     const fertileWindow: DateRange = {
-      start: this.calculator.addDays(result.ovulationDate, -5),
-      end: this.calculator.addDays(result.ovulationDate, 2)
+      start: PeriodCalculator.addDays(result.ovulationDate, -5),
+      end: PeriodCalculator.addDays(result.ovulationDate, 2)
     }; 
     
     // 计算安全期 
     const lastRecord = this.getLatestRecord(); 
-    const periodEnd = lastRecord ? this.calculator.addDays(lastRecord.startDate, lastRecord.periodLength) : new Date(); 
+    const periodEnd = lastRecord ? PeriodCalculator.addDays(lastRecord.startDate, lastRecord.periodLength) : new Date(); 
+    
+    const safePeriod: DateRange = {
+      start: periodEnd,
+      end: PeriodCalculator.addDays(result.nextPeriodDate, -1)
+    };
     
     return {
       nextPeriod: result.nextPeriodDate,
       ovulationDay: result.ovulationDate,
       fertileWindow,
-      safePeriod: {
-        start: periodEnd,
-        end: this.calculator.addDays(result.nextPeriodDate, -1)
-      }
+      safePeriod
     }; 
   } 
 
@@ -312,6 +314,12 @@ export class PeriodData {
   getCurrentPhase(): string { 
     const result = this.calculator.getCurrentCyclePhase(); 
     return result.phase; 
+  }
+
+  // 获取指定日期的周期阶段（用于CalendarPage）
+  getCyclePhase(date: Date): string {
+    const latestRecord = this.getLatestRecord();
+    return PeriodCalculator.getCurrentCyclePhase(date, latestRecord, this.settings);
   } 
 
   // 获取距离下次月经的天数 

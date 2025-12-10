@@ -134,7 +134,7 @@ export class PeriodCalculator {
   public static calculateCycleVariability(records: PeriodRecord[]): number {
     if (records.length < 2) return 0;
     
-    const avg = this.calculateAverageCycleLength(records);
+    const avg = PeriodCalculator.calculateAverageCycleLength(records);
     const variance = records.reduce(
       (sum: number, record: PeriodRecord) => sum + Math.pow(record.cycleLength - avg, 2),
       0
@@ -188,15 +188,15 @@ export class PeriodCalculator {
     if (!latestRecord) {
       const today = new Date();
       return {
-        nextPeriod: this.addDays(today, settings.averageCycleLength),
-        ovulationDay: this.addDays(today, settings.averageCycleLength - 14),
+        nextPeriod: PeriodCalculator.addDays(today, settings.averageCycleLength),
+        ovulationDay: PeriodCalculator.addDays(today, settings.averageCycleLength - 14),
         fertileWindow: {
-          start: this.addDays(today, settings.averageCycleLength - 19),
-          end: this.addDays(today, settings.averageCycleLength - 12)
+          start: PeriodCalculator.addDays(today, settings.averageCycleLength - 19),
+          end: PeriodCalculator.addDays(today, settings.averageCycleLength - 12)
         },
         safePeriod: {
           start: today,
-          end: this.addDays(today, settings.averageCycleLength - 19)
+          end: PeriodCalculator.addDays(today, settings.averageCycleLength - 19)
         }
       };
     }
@@ -207,15 +207,15 @@ export class PeriodCalculator {
     const ovulationDay = new Date(nextPeriod);
     ovulationDay.setDate(ovulationDay.getDate() - 14);
     
-    const fertileWindow = {
-      start: this.addDays(ovulationDay, -5),
-      end: this.addDays(ovulationDay, 2)
-    };
-    
-    const safePeriod = {
-      start: this.addDays(latestRecord.startDate, settings.averagePeriodLength),
-      end: this.addDays(ovulationDay, -6)
-    };
+    const fertileWindow: DateRange = {
+        start: PeriodCalculator.addDays(ovulationDay, -5),
+        end: PeriodCalculator.addDays(ovulationDay, 2)
+      };
+      
+      const safePeriod: DateRange = {
+        start: PeriodCalculator.addDays(latestRecord.startDate, settings.averagePeriodLength),
+        end: PeriodCalculator.addDays(ovulationDay, -6)
+      };
     
     return {
       nextPeriod,
@@ -233,5 +233,44 @@ export class PeriodCalculator {
   // 获取所有数据 
   public getAllCycleData(): CycleData[] { 
     return [...this.cycleData]; // 返回副本，避免外部修改 
+  }
+
+  // 实例方法：获取当前周期阶段
+  public getCurrentCyclePhase(): CyclePhaseResult {
+    if (this.cycleData.length === 0) {
+      return { phase: 'safe', daysRemaining: 0 };
+    }
+
+    const today = new Date();
+    const lastCycle = this.cycleData[this.cycleData.length - 1];
+    const nextPeriodDate = new Date(lastCycle.startDate);
+    nextPeriodDate.setDate(nextPeriodDate.getDate() + lastCycle.cycleDays);
+    const ovulationDate = new Date(nextPeriodDate);
+    ovulationDate.setDate(ovulationDate.getDate() - 14);
+    const periodEnd = new Date(lastCycle.startDate);
+    periodEnd.setDate(periodEnd.getDate() + lastCycle.periodDays);
+
+    // 计算距离下次经期的天数
+    const daysUntilNextPeriod = Math.ceil((nextPeriodDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // 确定当前周期阶段
+    let phase: string;
+    if (today >= lastCycle.startDate && today <= periodEnd) {
+      phase = 'period';
+    } else if (
+      today >= new Date(ovulationDate.getTime() - 2 * 24 * 60 * 60 * 1000) &&
+      today <= new Date(ovulationDate.getTime() + 1 * 24 * 60 * 60 * 1000)
+    ) {
+      phase = 'ovulation';
+    } else if (
+      today >= new Date(ovulationDate.getTime() - 5 * 24 * 60 * 60 * 1000) &&
+      today <= new Date(ovulationDate.getTime() + 2 * 24 * 60 * 60 * 1000)
+    ) {
+      phase = 'fertile';
+    } else {
+      phase = 'safe';
+    }
+
+    return { phase, daysRemaining: daysUntilNextPeriod };
   } 
 }
