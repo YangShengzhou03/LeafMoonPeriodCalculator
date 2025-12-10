@@ -1,15 +1,14 @@
 // 设置页面
 import { PeriodData } from '../model/PeriodData';
 import { StorageService } from '../services/StorageService';
-import { AlertDialog, router } from '@kit.ArkUI';
-import { Color } from '@kit.ArkUI';
-import { FontWeight } from '@ohos.syscapability.arkui.arkui';
+import AlertDialog from '@ohos.alertDialog';
+import router from '@ohos.router';
+import { FontWeight } from '@ohos.arkui.advanced.Text';
 
 @Entry
 @Component
 struct SettingsPage {
-  private router = router;
-  private periodData = PeriodData.getInstance();
+  private periodData: PeriodData = new PeriodData();
   private storageService = new StorageService();
   private isExporting = false;
   private isImporting = false;
@@ -23,23 +22,17 @@ struct SettingsPage {
     this.isExporting = false;
 
     if (filePath) {
-      AlertDialog.show({
-        title: '导出成功',
-        message: `数据已导出到: ${filePath}`,
-        primaryButton: {
-          value: '确定',
-          action: () => {}
-        }
-      });
+      AlertDialog.builder()
+        .title('导出成功')
+        .message(`数据已导出到: ${filePath}`)
+        .primaryButton('确定', () => {})
+        .show();
     } else {
-      AlertDialog.show({
-        title: '导出失败',
-        message: '数据导出失败，请重试',
-        primaryButton: {
-          value: '确定',
-          action: () => {}
-        }
-      });
+      AlertDialog.builder()
+        .title('导出失败')
+        .message('数据导出失败，请重试')
+        .primaryButton('确定', () => {})
+        .show();
     }
   }
 
@@ -57,25 +50,26 @@ struct SettingsPage {
           this.isImporting = false;
 
           if (success) {
-            AlertDialog.show({
-              title: '导入成功',
-              message: '数据导入成功',
-              primaryButton: {
-                value: '确定',
-                action: () => {
-                  this.router.pushUrl({ url: 'pages/Index' });
-                }
-              }
-            });
+            AlertDialog.builder()
+              .title('导入成功')
+              .message('数据导入成功')
+              .primaryButton('确定', () => {
+                router.pushUrl({ url: 'pages/Index' }).catch((err: Error) => {
+                  console.error('导航失败:', err);
+                });
+              })
+              .show();
           } else {
             AlertDialog.show({
-              title: '导入失败',
-              message: '数据导入失败，请重试',
-              primaryButton: {
-                value: '确定',
-                action: () => {}
-              }
-            });
+          title: '导入失败',
+          message: '数据导入失败，请重试',
+          buttons: [
+            {
+              text: '确定',
+              action: () => {}
+            }
+          ]
+        });
           }
         } else {
           this.isImporting = false;
@@ -85,23 +79,22 @@ struct SettingsPage {
         AlertDialog.show({
           title: '无可用文件',
           message: '没有找到可导入的数据文件',
-          primaryButton: {
-            value: '确定',
-            action: () => {}
-          }
+          buttons: [
+            {
+              text: '确定',
+              action: () => {}
+            }
+          ]
         });
       }
     } catch (error) {
       console.error('导入数据失败:', error);
       this.isImporting = false;
-      AlertDialog.show({
-        title: '导入失败',
-        message: '数据导入失败，请重试',
-        primaryButton: {
-          value: '确定',
-          action: () => {}
-        }
-      });
+      AlertDialog.builder()
+        .title('导入失败')
+        .message('数据导入失败，请重试')
+        .primaryButton('确定', () => {})
+        .show();
     }
   }
 
@@ -142,26 +135,32 @@ struct SettingsPage {
     AlertDialog.show({
       title: '警告',
       message: '确定要清除所有数据吗？此操作不可恢复。',
-      primaryButton: {
-        value: '取消',
-        action: () => {}
-      },
-      secondaryButton: {
-        value: '确定清除',
-        action: async () => {
-          await this.periodData.clearAllData();
-          AlertDialog.show({
-            title: '清除成功',
-            message: '所有数据已清除',
-            primaryButton: {
-              value: '确定',
-              action: () => {
-                this.router.pushUrl({ url: 'pages/Index' });
-              }
-            }
-          });
+      buttons: [
+        {
+          text: '取消',
+          action: () => {}
+        },
+        {
+          text: '确定清除',
+          action: async () => {
+            await this.periodData.clearAllData();
+            AlertDialog.show({
+              title: '清除成功',
+              message: '所有数据已清除',
+              buttons: [
+                {
+                  text: '确定',
+                  action: () => {
+                    router.pushUrl({ url: 'pages/Index' }).catch((err: Error) => {
+                      console.error('导航失败:', err);
+                    });
+                  }
+                }
+              ]
+            });
+          }
         }
-      }
+      ]
     });
   }
 
@@ -173,7 +172,8 @@ struct SettingsPage {
   }
 
   build() {
-    Column({\space: 'between'}) {
+    Column() {
+      // 页面标题栏
       // 页面标题栏
       Row() {
         Button() {
@@ -184,7 +184,7 @@ struct SettingsPage {
         .width(40)
         .height(40)
         .onClick(() => {
-          this.router.back();
+          router.back();
         })
 
         Text('设置')
@@ -214,7 +214,7 @@ struct SettingsPage {
             Button() {
               Text(this.darkMode ? '开启' : '关闭')
                 .fontSize(14)
-                .color(this.darkMode ? '#FFFFFF' : '#333333')
+                .fontColor(this.darkMode ? '#FFFFFF' : '#333333')
             }
             .width(80)
             .height(32)
@@ -248,7 +248,7 @@ struct SettingsPage {
                 .margin({ right: 'auto' })
               Text(this.isExporting ? '导出中...' : '导出为JSON文件')
                 .fontSize(14)
-                .color('#999999')
+                .fontColor('#999999')
             }
           }
           .width('100%')
@@ -266,7 +266,7 @@ struct SettingsPage {
                 .margin({ right: 'auto' })
               Text(this.isImporting ? '导入中...' : '从JSON文件导入')
                 .fontSize(14)
-                .color('#999999')
+                .fontColor('#999999')
             }
           }
           .width('100%')
@@ -280,7 +280,7 @@ struct SettingsPage {
             Text('清除所有数据')
               .fontSize(16)
               .fontWeight(400)
-              .color('#FF6B6B')
+              .fontColor('#FF6B6B')
           }
           .width('100%')
           .height(50)
@@ -299,14 +299,14 @@ struct SettingsPage {
 
           Text('LeafMoon 生理期计算器')
             .fontSize(14)
-            .color('#666666')
+            .fontColor('#666666')
             .margin({ bottom: 8 })
           Text('版本 1.0.0')
             .fontSize(14)
-            .color('#666666')
+            .fontColor('#666666')
           Text('提供专业的生理期跟踪与预测服务')
             .fontSize(14)
-            .color('#666666')
+            .fontColor('#666666')
             .margin({ top: 8 })
         }
         .width('90%')

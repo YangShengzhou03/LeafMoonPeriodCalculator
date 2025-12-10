@@ -1,10 +1,11 @@
 // 数据持久化服务
 import { PeriodRecord, UserSettings } from '../model/PeriodData';
-import { Preferences } from '@ohos.data.preferences';
-import { fs } from '@ohos.file.fs';
-import { path } from '@ohos.file.path';
+import Preferences from '@ohos.data.preferences';
+import fs from '@ohos.file.fs';
+import path from '@ohos.file.path';
+import { fileIo } from '@kit.CoreFileKit';
 import { BusinessError } from '@ohos.base';
-import { getContext } from '@ohos.app.ability.common';
+import common from '@ohos.app.ability.common';
 
 // 定义Symptom类型
 interface Symptom {
@@ -63,8 +64,8 @@ export class StorageService {
   // 初始化存储
   async init(): Promise<void> {
     try {
-      // 使用 getContext() 获取应用上下文
-      this.preferences = await Preferences.getPreferences(getContext(), 'period_calculator');
+      // 使用 getApplicationContext() 获取应用上下文
+      this.preferences = await Preferences.getPreferences(common.getApplicationContext(), 'period_calculator');
     } catch (error) {
       console.error('初始化存储失败:', error);
     }
@@ -117,7 +118,7 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const recordsJson: string = await this.preferences.get(STORAGE_KEY, '[]') as string;
+        const recordsJson: string = await this.preferences.get(STORAGE_KEY, '[]');
         const serializableRecords: SerializablePeriodRecord[] = JSON.parse(recordsJson) as SerializablePeriodRecord[];
 
         // 将ISO字符串转换回Date对象
@@ -175,7 +176,7 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const settingsJson: string = await this.preferences.get(SETTINGS_KEY, 'null') as string;
+        const settingsJson: string = await this.preferences.get(SETTINGS_KEY, 'null');
         return settingsJson ? JSON.parse(settingsJson) as UserSettings : null;
       } catch (error) {
         console.error('读取设置失败:', error);
@@ -206,7 +207,8 @@ export class StorageService {
   async exportData(): Promise<string | null> {
     try {
       // 获取应用文档目录
-      const documentsDir: string = await fs.getPublicDirectory(fs.DirectoryType.DIRECTORY_DOCUMENT) as string;
+      const context = common.getApplicationContext();
+      const documentsDir: string = context.filesDir;
       
       // 生成唯一的文件名
       const now = new Date();
@@ -249,7 +251,9 @@ export class StorageService {
       };
 
       // 写入文件
-      await fs.writeTextFile(filePath, JSON.stringify(exportData, null, 2));
+      const file: fileIo.File = await fileIo.open(filePath, fileIo.OpenMode.CREATE | fileIo.OpenMode.WRITE);
+      await fileIo.write(file.fd, JSON.stringify(exportData, null, 2));
+      await fileIo.close(file.fd);
 
       return filePath;
     } catch (error) {
@@ -262,8 +266,11 @@ export class StorageService {
   async importData(filePath: string): Promise<boolean> {
     try {
       // 读取文件内容
-      const fileContent: string = await fs.readTextFile(filePath);
-      const importData: ImportData = JSON.parse(fileContent) as ImportData;
+      const file: fileIo.File = await fileIo.open(filePath, fileIo.OpenMode.READ_ONLY);
+      const fileContent: string = await fileIo.readText(file.fd);
+      await fileIo.close(file.fd);
+      
+      const importData: ImportData = JSON.parse(fileContent);
 
       // 验证数据格式
       if (!importData.version || !importData.records) {
@@ -310,14 +317,17 @@ export class StorageService {
   // 获取导出文件列表
   async getExportFiles(): Promise<string[]> {
     try {
-      const documentsDir: string = await fs.getPublicDirectory(fs.DirectoryType.DIRECTORY_DOCUMENT) as string;
-      const files: FileInfo[] = await fs.listFile(documentsDir) as FileInfo[];
+      const context = common.getApplicationContext();
+      const documentsDir: string = context.filesDir;
+      
+      // 使用fileIo.listFile获取文件列表
+      const files: string[] = await fileIo.listFile(documentsDir);
       
       // 过滤出period_data开头的JSON文件
-      return files
-        .filter(file => file.name.startsWith('period_data_') && file.name.endsWith('.json'))
-        .sort((a, b) => b.lastModifiedTime - a.lastModifiedTime) // 按修改时间降序排列
-        .map(file => path.join(documentsDir, file.name));
+      const result: string[] = files
+        .filter(file => file.startsWith('period_data_') && file.endsWith('.json'))
+        .map(file => path.join(documentsDir, file));
+      return result;
     } catch (error) {
       console.error('获取导出文件列表失败:', error);
       return [];

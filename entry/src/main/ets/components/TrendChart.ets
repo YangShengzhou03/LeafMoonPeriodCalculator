@@ -1,4 +1,3 @@
-import { Component } from '@ohos.syscapability.arkui.arkui';
 import { Stack, Canvas, CanvasRenderingContext2D } from '@ohos.canvas';
 
 export interface ChartData {

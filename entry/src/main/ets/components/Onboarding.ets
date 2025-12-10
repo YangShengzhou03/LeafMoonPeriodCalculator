@@ -1,14 +1,17 @@
 import { PeriodData } from '../model/PeriodData';
 
+// 定义引导步骤接口
+export interface OnboardingStep {
+  title: string;
+  description: string;
+  image?: string;
+}
+
 @Component
 export struct Onboarding {
   private periodData: PeriodData;
   private currentStep: number = 0;
-  private steps: Array<{
-    title: string;
-    description: string;
-    image?: string;
-  }> = [
+  private steps: Array<OnboardingStep> = [
     {
       title: '欢迎使用 Leaf Moon',
       description: '您的月经周期智能助手，帮助您轻松追踪和预测月经周期。'
@@ -36,7 +39,7 @@ export struct Onboarding {
   }
 
   @Builder
-  private renderStep(step: { title: string; description: string; image?: string }) {
+  private renderStep(step: OnboardingStep) {
     Column() {
       Text(step.title)
         .fontSize(24)

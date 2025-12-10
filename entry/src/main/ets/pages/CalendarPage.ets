@@ -1,6 +1,6 @@
 import { PeriodData } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { router } from '@kit.ArkUI';
+import router from '@ohos.router';
 
 // 日历天类型定义
 interface CalendarDay {
@@ -25,7 +25,7 @@ struct CalendarPage {
   }
 
   // 生成日历天数
-  generateCalendarDays() {
+  generateCalendarDays(): void {
     this.calendarDays = [];
     const firstDay = new Date(this.currentYear, this.currentMonth, 1);
     const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
@@ -82,6 +82,8 @@ struct CalendarPage {
     // 使用 router.pushUrl 跳转到首页
     router.pushUrl({
       url: 'pages/Index'
+    }).catch((err: Error) => {
+      console.error('导航失败:', err);
     });
   }
 

@@ -1,7 +1,7 @@
 import { PeriodData, Symptom } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
 import { Slider } from '@kit.ArkUI';
-import { router } from '@kit.ArkUI';
+import router from '@ohos.router';
 import { AlertDialog } from '@kit.ArkUI';
 import { Onboarding } from '../components/Onboarding';
 
@@ -112,7 +112,7 @@ struct Index {
   }
 
   // 添加症状记录
-  async addSymptom() {
+  async addSymptom(): Promise<void> {
     if (this.selectedSymptom && this.currentPeriodId) {
       await this.periodData.addSymptom(this.currentPeriodId, {
         name: this.selectedSymptom,
@@ -141,38 +141,39 @@ struct Index {
       Column() {
         // 顶部信息栏
         Stack() {
-        Column() {
-          Text('LeafMoon')
+          Column() {
+            Text('LeafMoon')
             .fontSize(28)
             .fontWeight(700)
-            .color('#FFFFFF')
+            .fontColor('#FFFFFF')
             .margin({ bottom: 4 })
           Text('生理期计算器')
             .fontSize(16)
-            .color('rgba(255, 255, 255, 0.9)')
-        }
-        .padding(20)
-        .alignItems(HorizontalAlign.Center)
+            .fontColor('rgba(255, 255, 255, 0.9)')
+          }
+          .padding(20)
+          .alignItems(HorizontalAlign.Center)
 
-        // 设置按钮
-        Button() {
-          Text('⚙️')
-            .fontSize(22)
+          // 设置按钮
+          Button() {
+            Text('⚙️')
+              .fontSize(22)
+          }
+          .type(ButtonType.Circle)
+          .backgroundColor('rgba(255, 255, 255, 0.2)')
+          .width(44)
+          .height(44)
+          .position({ x: '90%', y: 20 })
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+              console.error('导航失败:', err);
+            });
+          })
+          .animation({
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
         }
-        .type(ButtonType.Circle)
-        .backgroundColor('rgba(255, 255, 255, 0.2)')
-        .width(44)
-        .height(44)
-        .position({ x: '90%', y: 20 })
-        .onClick(() => {
-          router.pushUrl({ url: 'pages/SettingsPage' });
-        })
-        .animation({
-          type: AnimationType.Scale,
-          duration: 200,
-          curve: Curve.EaseInOut
-        })
-      }
       .width('100%')
       .height(140)
       .backgroundGradient({
@@ -210,7 +211,6 @@ struct Index {
         offsetY: 8
       })
       .animation({
-        type: AnimationType.Translate,
         duration: 300,
         curve: Curve.EaseOut
       })
@@ -232,7 +232,6 @@ struct Index {
           })
           .onClick(() => this.openDatePicker())
           .animation({
-            type: AnimationType.Scale,
             duration: 200,
             curve: Curve.EaseInOut
           })
@@ -262,7 +261,6 @@ struct Index {
             }
           })
           .animation({
-            type: AnimationType.Scale,
             duration: 200,
             curve: Curve.EaseInOut
           })
@@ -283,10 +281,11 @@ struct Index {
           .onClick(() => {
             router.pushUrl({
               url: 'pages/CalendarPage'
+            }).catch((err: Error) => {
+              console.error('导航失败:', err);
             });
           })
           .animation({
-            type: AnimationType.Scale,
             duration: 200,
             curve: Curve.EaseInOut
           })
@@ -307,13 +306,14 @@ struct Index {
           .onClick(() => {
             router.pushUrl({
               url: 'pages/AnalysisPage'
+            }).catch((err: Error) => {
+              console.error('导航失败:', err);
             });
           })
           .animation({
-            type: AnimationType.Scale,
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
+          duration: 200,
+          curve: Curve.EaseInOut
+        })
       }
       .width('90%')
       .justifyContent('SpaceBetween')
@@ -324,7 +324,7 @@ struct Index {
         Text('周期预测')
           .fontSize(20)
           .fontWeight(700)
-          .color(this.darkMode ? '#FFFFFF' : '#333333')
+          .fontColor(this.darkMode ? '#FFFFFF' : '#333333')
           .alignSelf('Start')
           .margin({ bottom: 16 })
 
@@ -337,36 +337,36 @@ struct Index {
             Text('下次月经:')
               .width(100)
               .fontSize(16)
-              .color(this.darkMode ? '#AAAAAA' : '#666666')
+              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.nextPeriod))
               .fontSize(16)
               .fontWeight(700)
-              .color('#FF6B6B')
+              .fontColor('#FF6B6B')
           }
 
           Row() {
             Text('排卵日:')
               .width(100)
               .fontSize(16)
-              .color(this.darkMode ? '#AAAAAA' : '#666666')
+              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
             Text(PeriodCalculator.formatDate(prediction.ovulationDay))
               .fontSize(16)
               .fontWeight(700)
-              .color('#FFD93D')
+              .fontColor('#FFD93D')
           }
 
           Row() {
             Text('易孕期:')
               .width(100)
               .fontSize(16)
-              .color(this.darkMode ? '#AAAAAA' : '#666666')
+              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
             Text(
               `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ` +
               `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
             )
               .fontSize(16)
               .fontWeight(700)
-              .color('#FF9F43')
+              .fontColor('#FF9F43')
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
@@ -375,14 +375,14 @@ struct Index {
             Text('安全期:')
               .width(100)
               .fontSize(16)
-              .color(this.darkMode ? '#AAAAAA' : '#666666')
+              .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
             Text(
               `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ` +
               `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
             )
               .fontSize(16)
               .fontWeight(700)
-              .color('#6BCB77')
+              .fontColor('#6BCB77')
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
           }

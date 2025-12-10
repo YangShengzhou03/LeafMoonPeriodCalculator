@@ -1,20 +1,20 @@
 import { TrendChart } from '../components/TrendChart';
-import { PeriodData } from '../model/PeriodData';
+import { PeriodData, CycleTrendData, CycleStats } from '../model/PeriodData';
 import router from '@ohos.router';
-import { FontWeight } from '@ohos.syscapability.arkui.arkui';
+import { FontWeight } from '@ohos.arkui.advanced.Text';
 
 @Entry
 @Component
 struct AnalysisPage {
-  private periodData = PeriodData.getInstance();
+  private periodData: PeriodData = new PeriodData();
 
   // 获取趋势数据
-  private getTrendData() {
+  private getTrendData(): CycleTrendData {
     return this.periodData.getCycleTrendData();
   }
 
   // 获取统计数据
-  private getStats() {
+  private getStats(): CycleStats {
     return this.periodData.getCycleStats();
   }
 
@@ -29,7 +29,9 @@ struct AnalysisPage {
         .type(ButtonType.Circle)
         .backgroundColor('#F5F5F5')
         .onClick(() => {
-          this.router.back();
+          router.back().catch((err: Error) => {
+            console.error('返回失败:', err);
+          });
         })
 
         NavigationTitle() {
