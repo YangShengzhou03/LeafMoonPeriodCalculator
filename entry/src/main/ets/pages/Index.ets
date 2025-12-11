@@ -336,17 +336,13 @@ struct Index {
             .alignSelf('Start')
             .margin({ bottom: 16 })
 
-          const latestRecord = this.periodData.getLatestRecord();
-          const settings = this.periodData.getSettings();
-          const prediction = PeriodCalculator.predictNextPeriod(latestRecord, settings);
-
           Column() {
             Row() {
               Text('下次月经:')
                 .width(100)
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-              Text(PeriodCalculator.formatDate(prediction.nextPeriod))
+              Text(PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).nextPeriod))
                 .fontSize(16)
                 .fontWeight(700)
                 .fontColor('#FF6B6B')
@@ -437,12 +433,10 @@ struct Index {
           .alignItems('Center')
           .margin({ bottom: 16 })
 
-          const symptoms = this.getCurrentPeriodSymptoms();
-          
-          if (this.showSymptomList || symptoms.length > 0) {
-            if (symptoms.length > 0) {
+          if (this.showSymptomList || this.getCurrentPeriodSymptoms().length > 0) {
+            if (this.getCurrentPeriodSymptoms().length > 0) {
               Column() {
-                for (let symptom of symptoms) {
+                ForEach(this.getCurrentPeriodSymptoms(), (symptom) => {
                   Row() {
                     Text(symptom.name)
                       .width(100)
@@ -620,23 +614,31 @@ struct Index {
 
       // 日期选择器对话框
       if (this.showDatePicker) {
-        AlertDialog.show({
-          title: '选择日期',
-          message: '',
-          primaryButton: {
-            value: '取消',
-            action: () => {
+        Stack({\ zIndex: 100 }) {
+          // 半透明背景遮罩
+          Row()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.5)')
+            .onClick(() => {
               this.showDatePicker = false;
-            }
-          },
-          secondaryButton: {
-            value: '确定',
-            action: () => {
-              this.addPeriodRecord();
-              this.showDatePicker = false;
-            }
-          },
-          builder: () => {
+            })
+          
+          // 对话框内容
+          Column({\ space: 20 })
+            .width(300)
+            .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
+            .borderRadius(12)
+            .padding(24)
+            .shadow({\ radius: 16, color: 'rgba(0, 0, 0, 0.3)', offsetX: 0, offsetY: 8 })
+          {
+            // 标题
+            Text('选择日期')
+              .fontSize(20)
+              .fontWeight(700)
+              .color(this.darkMode ? '#FFFFFF' : '#000000')
+              .margin({ bottom: 12 })
+            
             // 使用文本输入框让用户输入日期
             TextInput({
               placeholder: 'YYYY-MM-DD',
@@ -644,7 +646,9 @@ struct Index {
             })
             .width('100%')
             .height(44)
-            .margin(20)
+            .backgroundColor(this.darkMode ? '#444444' : '#F0F0F0')
+            .borderRadius(8)
+            .padding(12)
             .onChange((value: string) => {
               // 简单的日期格式验证
               const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -656,32 +660,64 @@ struct Index {
                 this.selectedDate = new Date(year, month, day);
               }
             });
-          },
-          autoCancel: true
-        });
+            
+            // 按钮行
+            Row({\ space: 12 })
+              .width('100%')
+              .justifyContent('FlexEnd')
+            {
+              // 取消按钮
+              Button('取消')
+                .width(80)
+                .height(36)
+                .backgroundColor(this.darkMode ? '#555555' : '#F0F0F0')
+                .fontColor(this.darkMode ? '#FFFFFF' : '#000000')
+                .borderRadius(8)
+                .onClick(() => {
+                  this.showDatePicker = false;
+                })
+              
+              // 确定按钮
+              Button('确定')
+                .width(80)
+                .height(36)
+                .backgroundColor('#67C23A')
+                .fontColor('#FFFFFF')
+                .borderRadius(8)
+                .onClick(() => {
+                  this.addPeriodRecord();
+                  this.showDatePicker = false;
+                })
+            }
+          }
+        }
+        .width('100%')
+        .height('100%')
+        .position({ x: 0, y: 0 })
       }
 
-      // 症状记录对话框
+      // 症状记录界面
       if (this.showSymptomDialog) {
-        AlertDialog({
-          title: '记录症状',
-          message: '',
-          primaryButton: {
-            value: '取消',
-            action: () => {
+        // 使用半透明遮罩层
+        Stack() {
+          // 背景遮罩
+          Column()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.5)')
+            .onClick(() => {
               this.showSymptomDialog = false;
               this.selectedSymptom = '';
               this.symptomValue = 5;
-            }
-          },
-          secondaryButton: {
-            value: '确定',
-            action: () => this.addSymptom()
-          }
-        })
-        .show()
-        .builder(
+            })
+
+          // 对话框内容
           Column() {
+            Text('记录症状')
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .margin({ bottom: 20 })
+
             // 症状选择
             Text('选择症状:')
               .fontSize(14)
@@ -728,35 +764,64 @@ struct Index {
                 .overflow(Overflow.Scroll)
               }
             }
-              .width('100%')
-              .margin({ bottom: 20 })
+            .width('100%')
+            .margin({ bottom: 20 })
 
-              // 症状程度
-              Text('症状程度 (0-10):')
-                .fontSize(14)
-                .color('#666666')
-                .alignSelf(ItemAlign.Start)
-                .margin({ bottom: 10 })
+            // 症状程度
+            Text('症状程度 (0-10):')
+              .fontSize(14)
+              .color('#666666')
+              .alignSelf(ItemAlign.Start)
+              .margin({ bottom: 10 })
 
-              Slider({
-                value: this.symptomValue,
-                min: 0,
-                max: 10,
-                step: 1
-              })
-              .width('100%')
-              .onChange((value: number): void => {
-                this.symptomValue = value;
-              });
+            Slider({
+              value: this.symptomValue,
+              min: 0,
+              max: 10,
+              step: 1
+            })
+            .width('100%')
+            .onChange((value: number): void => {
+              this.symptomValue = value;
+            });
 
-              Text(`${this.symptomValue}`)
-                .fontSize(16)
-                .fontWeight(FontWeight.Bold)
-                .color('#333333')
-                .margin({ top: 10 })
+            Text(`${this.symptomValue}`)
+              .fontSize(16)
+              .fontWeight(FontWeight.Bold)
+              .color('#333333')
+              .margin({ top: 10, bottom: 20 })
+
+            // 按钮栏
+            Row() {
+              Button('取消')
+                .width('45%')
+                .height(44)
+                .backgroundColor('#E0E0E0')
+                .borderRadius(8)
+                .margin({ right: 10 })
+                .onClick(() => {
+                  this.showSymptomDialog = false;
+                  this.selectedSymptom = '';
+                  this.symptomValue = 5;
+                })
+
+              Button('确定')
+                .width('45%')
+                .height(44)
+                .backgroundColor('#FF69B4')
+                .borderRadius(8)
+                .onClick(() => this.addSymptom())
+            }
           }
+          .width('80%')
+          .backgroundColor('#FFFFFF')
+          .borderRadius(12)
           .padding(20)
-        )
+          .alignItems(HorizontalAlign.Center)
+          .justifyContent(FlexAlign.Center)
+        }
+        .position({ x: 0, y: 0 })
+        .zIndex(100)
       }
       
       // 新手引导
