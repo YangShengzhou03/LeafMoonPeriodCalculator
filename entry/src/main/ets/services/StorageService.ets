@@ -2,11 +2,9 @@
 import { PeriodRecord, UserSettings } from '../model/PeriodData';
 import preferences from '@ohos.data.preferences';
 import fs from '@ohos.file.fs';
-import fileIo from '@ohos.file.io';
 import { BusinessError } from '@ohos.base';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-import { Context, UIAbilityContext } from '@ohos.ability.context';
-import hilog from '@ohos.hilog';
+import { AbilityContext } from '@ohos.ability.context';
 
 // 定义Symptom类型
 interface Symptom {
@@ -63,7 +61,7 @@ export class StorageService {
   private preferences: preferences.Preferences | null = null;
 
   // 初始化存储
-  async init(context: Context): Promise<void> {
+  async init(context: AbilityContext): Promise<void> {
     try {
       // 使用上下文获取偏好设置
       this.preferences = await preferences.getPreferences(context, 'period_calculator') as preferences.Preferences;
@@ -216,53 +214,6 @@ export class StorageService {
       // 获取应用文档目录 - 注意：这个方法需要上下文，暂时返回null
       console.error('导出数据需要上下文参数');
       return null;
-      
-      // 生成唯一的文件名
-      const now = new Date();
-      const fileName: string = `period_data_${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}.json`;
-      const filePath: string = documentsDir + '/' + fileName;
-
-      // 获取当前数据
-      const records: PeriodRecord[] = await this.loadPeriodRecords();
-      const settings: UserSettings | null = await this.loadSettings();
-
-      // 准备导出数据
-      const serializableRecords: SerializablePeriodRecord[] = records.map((record: PeriodRecord) => {
-        const serializableSymptoms: SerializableSymptom[] = record.symptoms.map((symptom: Symptom) => {
-          const serializableSymptom: SerializableSymptom = {
-            id: symptom.id,
-            name: symptom.name,
-            value: symptom.value,
-            date: symptom.date.toISOString()
-          };
-          return serializableSymptom;
-        });
-
-        const serializableRecord: SerializablePeriodRecord = {
-          id: record.id,
-          startDate: record.startDate.toISOString(),
-          endDate: record.endDate.toISOString(),
-          cycleLength: record.cycleLength,
-          periodLength: record.periodLength,
-          notes: record.notes,
-          symptoms: serializableSymptoms
-        };
-        return serializableRecord;
-      });
-
-      const exportData: ExportData = {
-        version: '1.0',
-        exportDate: now.toISOString(),
-        records: serializableRecords,
-        settings: settings ?? undefined
-      };
-
-      // 写入文件
-      const file = await fs.open(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      await fs.writeText(file.fd, JSON.stringify(exportData, null, 2));
-      await fs.close(file.fd);
-
-      return filePath;
     } catch (error) {
       console.error('导出数据失败:', error);
       return null;
@@ -327,12 +278,6 @@ export class StorageService {
       // 获取应用文档目录 - 注意：这个方法需要上下文，暂时返回空数组
       console.error('获取导出文件需要上下文参数');
       return [];
-      
-      // 过滤出period_data开头的JSON文件
-      const result: string[] = files
-        .filter((file: string) => file.startsWith('period_data_') && file.endsWith('.json'))
-        .map((file: string) => documentsDir + '/' + file);
-      return result;
     } catch (error) {
       console.error('获取导出文件列表失败:', error);
       return [];

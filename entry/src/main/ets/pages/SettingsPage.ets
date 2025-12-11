@@ -1,7 +1,7 @@
 // 设置页面
 import { PeriodData } from '../model/PeriodData';
 import { StorageService } from '../services/StorageService';
-import AlertDialog from '@ohos.alertDialog';
+import { AlertDialog } from '@ohos.arkui';
 import router from '@ohos.router';
 
 @Entry

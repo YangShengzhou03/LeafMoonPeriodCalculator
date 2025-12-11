@@ -1,8 +1,7 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, AlertDialog } from '@ohos.arkui';
 import router from '@ohos.router';
-import AlertDialog from '@ohos.alertDialog';
 import { Onboarding } from '../components/Onboarding';
 
 @Entry
