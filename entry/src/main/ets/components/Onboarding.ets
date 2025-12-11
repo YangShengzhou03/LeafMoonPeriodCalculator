@@ -9,7 +9,7 @@ export interface OnboardingStep {
 
 @Component
 export struct Onboarding {
-  private periodData: PeriodData | undefined;
+  @Prop periodData: PeriodData;
   private currentStep: number = 0;
   private steps: Array<OnboardingStep> = [
     {
@@ -33,11 +33,6 @@ export struct Onboarding {
       description: '在设置页面可以调整周期长度、启用提醒等个性化选项。'
     }
   ];
-
-  // 构造函数初始化periodData
-  constructor(periodData: PeriodData) {
-    this.periodData = periodData;
-  }
 
   @Builder
   private renderStep(step: OnboardingStep) {

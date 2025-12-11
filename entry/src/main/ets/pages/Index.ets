@@ -1,7 +1,7 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
 import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider } from '@ohos.arkui';
-import { ItemAlign, FontWeight } from '@ohos.arkui';
+import { ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
 import router from '@ohos.router';
 import AlertDialog from '@ohos.alertDialog';
 import { Onboarding } from '../components/Onboarding';
@@ -91,7 +91,7 @@ struct Index {
   }
 
   // 打开日期选择器
-  openDatePicker() {
+  openDatePicker(): void {
     this.showDatePicker = true;
   }
 
@@ -726,7 +726,7 @@ struct Index {
                   .borderColor('#E0E0E0')
                   .padding(8)
                   .maxHeight(200)
-                  .overflow('Scroll')
+                  .overflow(Overflow.Scroll)
                 }
               }
               .width('100%')
@@ -758,7 +758,7 @@ struct Index {
             }
             .padding(20)
           }
-        });
+        })
       }
       
       // 新手引导

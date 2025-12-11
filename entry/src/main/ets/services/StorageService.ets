@@ -5,7 +5,7 @@ import fs from '@ohos.file.fs';
 import { fileIo } from '@kit.CoreFileKit';
 import { BusinessError } from '@ohos.base';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-import { common } from '@kit.AbilityKit';
+import { getApplicationContext, UIAbilityContext } from '@kit.AbilityKit';
 
 // 定义Symptom类型
 interface Symptom {
@@ -64,7 +64,7 @@ export class StorageService {
   // 初始化存储
   async init(): Promise<void> {
     try {
-      const context = common.getApplicationContext() as common.UIAbilityContext;
+      const context = getApplicationContext() as UIAbilityContext;
       this.preferences = await preferences.getPreferences(context, 'period_calculator') as preferences.Preferences;
     } catch (error) {
       console.error('初始化存储失败:', error);
@@ -118,7 +118,7 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const recordsJson: string = this.preferences.get(STORAGE_KEY, '[]') as string;
+        const recordsJson: string = await this.preferences.get(STORAGE_KEY, '[]') as string;
         const serializableRecords: SerializablePeriodRecord[] = JSON.parse(recordsJson) as SerializablePeriodRecord[];
 
         // 将ISO字符串转换回Date对象
@@ -176,7 +176,7 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const settingsJson: string = this.preferences.get(SETTINGS_KEY, '') as string;
+        const settingsJson: string = await this.preferences.get(SETTINGS_KEY, '') as string;
         if (settingsJson) {
           return JSON.parse(settingsJson) as UserSettings;
         }
@@ -208,7 +208,7 @@ export class StorageService {
   async exportData(): Promise<string | null> {
     try {
       // 获取应用文档目录
-      const context = common.getApplicationContext() as common.UIAbilityContext;
+      const context = getApplicationContext() as UIAbilityContext;
       const documentsDir: string = context.filesDir;
       
       // 生成唯一的文件名
@@ -318,7 +318,7 @@ export class StorageService {
   // 获取所有导出的JSON文件
   async getExportFiles(): Promise<string[]> {
     try {
-      const context = common.getApplicationContext() as common.UIAbilityContext;
+      const context = getApplicationContext() as UIAbilityContext;
       const documentsDir: string = context.filesDir;
       
       // 使用fs.readdir获取文件列表

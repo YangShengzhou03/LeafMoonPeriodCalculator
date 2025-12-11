@@ -285,35 +285,14 @@ export class PeriodData {
 
   // 获取预测结果 
   getPrediction(): PredictionResult { 
-    const result: CalculationResult = this.calculator.predictNextPeriod(); 
-    
-    // 计算易孕期（排卵日前5天到后2天）
-    const fertileWindow: DateRange = {
-      start: PeriodCalculator.addDays(result.ovulationDate, -5),
-      end: PeriodCalculator.addDays(result.ovulationDate, 2)
-    }; 
-    
-    // 计算安全期 
-    const lastRecord = this.getLatestRecord(); 
-    const periodEnd = lastRecord ? PeriodCalculator.addDays(lastRecord.startDate, lastRecord.periodLength) : new Date(); 
-    
-    const safePeriod: DateRange = {
-      start: periodEnd,
-      end: PeriodCalculator.addDays(result.nextPeriodDate, -1)
-    };
-    
-    return {
-      nextPeriod: result.nextPeriodDate,
-      ovulationDay: result.ovulationDate,
-      fertileWindow,
-      safePeriod
-    }; 
+    const latestRecord = this.getLatestRecord(); 
+    return PeriodCalculator.predictNextPeriod(latestRecord, this.settings); 
   } 
 
   // 获取当前周期阶段 
   getCurrentPhase(): string { 
-    const result = this.calculator.getCurrentCyclePhase(); 
-    return result.phase; 
+    const latestRecord = this.getLatestRecord();
+    return PeriodCalculator.getCurrentCyclePhase(new Date(), latestRecord, this.settings);
   }
 
   // 获取指定日期的周期阶段（用于CalendarPage）
@@ -324,28 +303,23 @@ export class PeriodData {
 
   // 获取距离下次月经的天数 
   getDaysUntilNextPeriod(): number { 
-    try { 
-      const result = this.calculator.predictNextPeriod(); 
-      return result.daysUntilNextPeriod; 
-    } catch (e) { 
-      // 如果没有数据，使用默认设置计算 
-      return this.settings.averageCycleLength; 
-    } 
+    const latestRecord = this.getLatestRecord();
+    return PeriodCalculator.daysUntilNextPeriod(latestRecord, this.settings);
   } 
 
   // 获取周期统计信息 
   getCycleStats(): CycleStats { 
     return { 
-      averageCycleLength: this.calculator.calculateAverageCycleLength(), 
-      averagePeriodLength: this.calculator.calculateAveragePeriodLength(), 
+      averageCycleLength: PeriodCalculator.calculateAverageCycleLength(this.records), 
+      averagePeriodLength: PeriodCalculator.calculateAveragePeriodLength(this.records), 
       recordCount: this.records.length, 
-      cycleVariability: this.calculator.calculateCycleVariability() 
+      cycleVariability: PeriodCalculator.calculateCycleVariability(this.records) 
     }; 
   } 
 
   // 获取周期趋势数据（用于图表展示） 
   getCycleTrendData(): CycleTrendData { 
-    const trendData = this.calculator.generateCycleTrendData(); 
+    const trendData = PeriodCalculator.generateCycleTrendData(this.records); 
     
     // 转换为兼容原有图表的格式 
     return { 

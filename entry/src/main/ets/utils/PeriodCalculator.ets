@@ -43,37 +43,7 @@ export class PeriodCalculator {
     this.cycleData = initialData; 
   } 
 
-  // 显式声明返回类型，修复 arkts-no-implicit-return-types 
-  public predictNextPeriod(): CalculationResult { 
-    if (this.cycleData.length === 0) { 
-      throw new Error("No cycle data available"); 
-    } 
-
-    // 获取最后一条记录 
-    const lastCycle = this.cycleData[this.cycleData.length - 1]; 
-    // 计算下次经期日期 
-    const nextPeriodDate = new Date(lastCycle.startDate); 
-    nextPeriodDate.setDate(nextPeriodDate.getDate() + lastCycle.cycleDays); 
-    
-    // 计算排卵期（经期前14天） 
-    const ovulationDate = new Date(nextPeriodDate); 
-    ovulationDate.setDate(ovulationDate.getDate() - 14); 
-    
-    // 计算当前周期阶段 
-    const cyclePhase = this.getCurrentCyclePhase(); 
-    // 计算距离下次经期的天数 
-    const today = new Date(); 
-    const daysUntilNextPeriod = Math.ceil( 
-      (nextPeriodDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24) 
-    ); 
-
-    return { 
-      nextPeriodDate, 
-      ovulationDate, 
-      cyclePhase, 
-      daysUntilNextPeriod 
-    }; 
-  } 
+  // Removed instance method - using static predictNextPeriod instead 
 
   // 改为静态方法并添加参数，以匹配Index.ets中的调用方式
   public static getCurrentCyclePhase(currentDate: Date, latestRecord: PeriodRecord | null, settings: UserSettings): string {
@@ -142,16 +112,16 @@ export class PeriodCalculator {
     return Math.round(Math.sqrt(variance / records.length));
   } 
 
-  // 显式声明返回类型 
-  public generateCycleTrendData(): TrendData[] { 
+  // 显式声明返回类型 - 改为静态方法并使用PeriodRecord[]
+  public static generateCycleTrendData(records: PeriodRecord[]): TrendData[] { 
     const trendData: TrendData[] = []; 
     
-    this.cycleData.forEach((data, index) => { 
-      const month = new Date(data.startDate).toLocaleString('default', { month: 'short' }); 
+    records.forEach((record, index) => { 
+      const month = new Date(record.startDate).toLocaleString('default', { month: 'short' }); 
       trendData.push({ 
         month, 
-        cycleLength: data.cycleDays, 
-        periodLength: data.periodDays 
+        cycleLength: record.cycleLength, 
+        periodLength: record.periodLength 
       }); 
     }); 
     
@@ -235,42 +205,5 @@ export class PeriodCalculator {
     return [...this.cycleData]; // 返回副本，避免外部修改 
   }
 
-  // 实例方法：获取当前周期阶段
-  public getCurrentCyclePhase(): CyclePhaseResult {
-    if (this.cycleData.length === 0) {
-      return { phase: 'safe', daysRemaining: 0 };
-    }
-
-    const today = new Date();
-    const lastCycle = this.cycleData[this.cycleData.length - 1];
-    const nextPeriodDate = new Date(lastCycle.startDate);
-    nextPeriodDate.setDate(nextPeriodDate.getDate() + lastCycle.cycleDays);
-    const ovulationDate = new Date(nextPeriodDate);
-    ovulationDate.setDate(ovulationDate.getDate() - 14);
-    const periodEnd = new Date(lastCycle.startDate);
-    periodEnd.setDate(periodEnd.getDate() + lastCycle.periodDays);
-
-    // 计算距离下次经期的天数
-    const daysUntilNextPeriod = Math.ceil((nextPeriodDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    // 确定当前周期阶段
-    let phase: string;
-    if (today >= lastCycle.startDate && today <= periodEnd) {
-      phase = 'period';
-    } else if (
-      today >= new Date(ovulationDate.getTime() - 2 * 24 * 60 * 60 * 1000) &&
-      today <= new Date(ovulationDate.getTime() + 1 * 24 * 60 * 60 * 1000)
-    ) {
-      phase = 'ovulation';
-    } else if (
-      today >= new Date(ovulationDate.getTime() - 5 * 24 * 60 * 60 * 1000) &&
-      today <= new Date(ovulationDate.getTime() + 2 * 24 * 60 * 60 * 1000)
-    ) {
-      phase = 'fertile';
-    } else {
-      phase = 'safe';
-    }
-
-    return { phase, daysRemaining: daysUntilNextPeriod };
-  } 
+  // Removed instance method - using static getCurrentCyclePhase instead 
 }
