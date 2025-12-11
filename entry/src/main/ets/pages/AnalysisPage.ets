@@ -29,7 +29,7 @@ struct AnalysisPage {
         .type(ButtonType.Circle)
         .backgroundColor('#F5F5F5')
         .onClick(() => {
-            router.pushUrl({ url: 'pages/Index' });
+            router.push({ url: 'pages/Index' });
           })
 
         Text('数据分析')

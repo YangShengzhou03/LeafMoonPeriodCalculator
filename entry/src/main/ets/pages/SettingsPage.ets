@@ -15,7 +15,7 @@ struct SettingsPage {
   private darkMode = this.settings.darkMode;
 
   // 导出数据
-  async exportData() {
+  async exportData(): Promise<void> {
     this.isExporting = true;
     const filePath = await this.storageService.exportData();
     this.isExporting = false;
@@ -36,7 +36,7 @@ struct SettingsPage {
   }
 
   // 导入数据
-  async importData() {
+  async importData(): Promise<void> {
     try {
       this.isImporting = true;
       const files = await this.storageService.getExportFiles();
@@ -53,7 +53,7 @@ struct SettingsPage {
               .title('导入成功')
               .message('数据导入成功')
               .primaryButton('确定', () => {
-                router.replace({ url: 'pages/Index' });
+                router.replaceUrl({ url: 'pages/Index' });
               })
               .show();
           } else {
@@ -162,8 +162,8 @@ struct SettingsPage {
                 {
                   text: '确定',
                     action: () => {
-                      router.pushUrl({ url: 'pages/Index' });
-                    }
+                    router.push({ url: 'pages/Index' });
+                  }
                 }
               ]
             });
@@ -193,7 +193,7 @@ struct SettingsPage {
         .width(40)
         .height(40)
         .onClick(() => {
-          router.pushUrl({ url: 'pages/Index' });
+          router.push({ url: 'pages/Index' });
         })
 
         Text('设置')

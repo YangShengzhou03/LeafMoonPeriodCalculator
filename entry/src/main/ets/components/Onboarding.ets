@@ -67,7 +67,7 @@ export struct Onboarding {
           .width(index === this.currentStep ? 24 : 12)
           .height(12)
           .fill(index === this.currentStep ? '#FF6B6B' : '#CCCCCC')
-          .margin({ horizontal: 8 });
+          .margin({ left: 8, right: 8 });
       });
     }
   }

@@ -2,7 +2,7 @@ import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
 import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
 import router from '@ohos.router';
-import { AlertDialog } from '@ohos.arkui.dialog';
+import AlertDialog from '@ohos.alertDialog';
 import { Onboarding } from '../components/Onboarding';
 
 @Entry
@@ -171,8 +171,8 @@ struct Index {
         .height(44)
         .position({ x: '90%', y: 20 })
         .onClick(() => {
-              router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
-                console.error('Navigation failed:', err);
+              router.push({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+                console.error('跳转到设置页面失败:', err);
               });
             })
         .animation({
@@ -183,7 +183,7 @@ struct Index {
       .width('100%')
       .height(140)
       .backgroundGradient({
-        direction: GradientDirection.TopToBottom,
+        direction: 0, // 0表示TopToBottom方向
         colors: ['#FF6B6B', '#FF8787']
       })
       .borderRadius(0, 0, 24, 24)
@@ -287,11 +287,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({
-                url: 'pages/CalendarPage'
-              }).catch((err: Error) => {
-                console.error('Navigation failed:', err);
-              });
+              router.push({ url: 'pages/CalendarPage' });
             })
             .animation({
               duration: 200,
@@ -312,11 +308,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({
-                url: 'pages/AnalysisPage'
-              }).catch((err: Error) => {
-                console.error('Navigation failed:', err);
-              });
+              router.push({ url: 'pages/AnalysisPage' });
             })
             .animation({
               duration: 200,
@@ -337,12 +329,15 @@ struct Index {
             .margin({ bottom: 16 })
 
           Column() {
+            // 获取预测结果
+            let prediction = PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings());
+            
             Row() {
               Text('下次月经:')
                 .width(100)
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-              Text(PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).nextPeriod))
+              Text(PeriodCalculator.formatDate(prediction.nextPeriod))
                 .fontSize(16)
                 .fontWeight(700)
                 .fontColor('#FF6B6B')
@@ -423,7 +418,6 @@ struct Index {
               .padding({ horizontal: 16, vertical: 6 })
               .onClick(() => this.showSymptomList = !this.showSymptomList)
               .animation({
-                type: AnimationType.Scale,
                 duration: 200,
                 curve: Curve.EaseInOut
               })
@@ -436,7 +430,7 @@ struct Index {
           if (this.showSymptomList || this.getCurrentPeriodSymptoms().length > 0) {
             if (this.getCurrentPeriodSymptoms().length > 0) {
               Column() {
-                ForEach(this.getCurrentPeriodSymptoms(), (symptom) => {
+                ForEach(this.getCurrentPeriodSymptoms(), (symptom: Symptom) => {
                   Row() {
                     Text(symptom.name)
                       .width(100)
@@ -468,7 +462,7 @@ struct Index {
                   .backgroundColor(this.darkMode ? '#444444' : '#FFFFFF')
                   .borderRadius(12)
                   .margin({ bottom: 8 })
-                }
+                }, (item: Symptom) => item.id.toString())
               }
             } else {
               Text('暂无症状记录，点击"记录症状"添加')
@@ -611,10 +605,11 @@ struct Index {
           color: 'rgba(0, 0, 0, 0.12)',
           offsetX: 0,
           offsetY: 8
+        })
 
       // 日期选择器对话框
       if (this.showDatePicker) {
-        Stack({\ zIndex: 100 }) {
+        Stack() {
           // 半透明背景遮罩
           Row()
             .width('100%')
@@ -625,13 +620,12 @@ struct Index {
             })
           
           // 对话框内容
-          Column({\ space: 20 })
+          Column({ space: 20 })
             .width(300)
             .backgroundColor(this.darkMode ? '#333333' : '#FFFFFF')
             .borderRadius(12)
             .padding(24)
-            .shadow({\ radius: 16, color: 'rgba(0, 0, 0, 0.3)', offsetX: 0, offsetY: 8 })
-          {
+            .shadow({ radius: 16, color: 'rgba(0, 0, 0, 0.3)', offsetX: 0, offsetY: 8 }) {
             // 标题
             Text('选择日期')
               .fontSize(20)
@@ -649,23 +643,20 @@ struct Index {
             .backgroundColor(this.darkMode ? '#444444' : '#F0F0F0')
             .borderRadius(8)
             .padding(12)
-            .onChange((value: string) => {
+            .onChange((value: string): void => {
               // 简单的日期格式验证
               const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
               if (dateRegex.test(value)) {
                 const parts: string[] = value.split('-');
-                const year = parseInt(parts[0]);
-                const month = parseInt(parts[1]) - 1;
-                const day = parseInt(parts[2]);
+                const year: number = parseInt(parts[0]);
+                const month: number = parseInt(parts[1]) - 1;
+                const day: number = parseInt(parts[2]);
                 this.selectedDate = new Date(year, month, day);
               }
             });
             
             // 按钮行
-            Row({\ space: 12 })
-              .width('100%')
-              .justifyContent('FlexEnd')
-            {
+            Row({ space: 12 }) {
               // 取消按钮
               Button('取消')
                 .width(80)
@@ -689,6 +680,8 @@ struct Index {
                   this.showDatePicker = false;
                 })
             }
+            .width('100%')
+            .justifyContent('FlexEnd')
           }
         }
         .width('100%')
@@ -741,18 +734,18 @@ struct Index {
 
               if (this.showSymptomList) {
                 Column() {
-                  ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
-                    Button(symptom)
-                      .width('100%')
-                      .height(40)
-                      .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
-                      .borderRadius(4)
-                      .margin({ bottom: 4 })
-                      .onClick(() => {
-                        this.selectedSymptom = symptom;
-                        this.showSymptomList = false;
-                      })
+                  ForEach(this.periodData.getCommonSymptoms(), (symptom: string): void => {
+                Button(symptom)
+                  .width('100%')
+                  .height(40)
+                  .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                  .borderRadius(4)
+                  .margin({ bottom: 4 })
+                  .onClick((): void => {
+                    this.selectedSymptom = symptom;
+                    this.showSymptomList = false;
                   })
+              }, (symptom: string): string => symptom)
                 }
                 .width('100%')
                 .backgroundColor('#FFFFFF')
