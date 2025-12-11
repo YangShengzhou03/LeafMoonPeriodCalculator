@@ -1,7 +1,7 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, TextOverflow } from '@ohos.arkui';
-import { AlertDialog } from '@ohos.arkui.dialog';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, TextOverflow } from '@ohos/arkui';
+import { AlertDialog } from '@ohos/arkui/dialog';
 import router from '@ohos.router';
 import { Onboarding } from '../components/Onboarding';
 
@@ -611,6 +611,7 @@ struct Index {
           offsetX: 0,
           offsetY: 8
         })
+      }
 
       // 日期选择器对话框
       if (this.showDatePicker) {
