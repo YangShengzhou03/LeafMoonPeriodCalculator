@@ -1,6 +1,6 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, TextOverflow } from '@ohos.arkui';
 import { AlertDialog } from '@ohos.arkui.dialog';
 import router from '@ohos.router';
 import { Onboarding } from '../components/Onboarding';
@@ -331,16 +331,13 @@ struct Index {
             .margin({ bottom: 16 })
 
           Column() {
-            // 计算预测信息
-            const prediction = PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings());
-            
             // 预测信息已在组件内计算
             Row() {
               Text('下次月经:')
                 .width(100)
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-              Text(PeriodCalculator.formatDate(prediction.nextPeriod))
+              Text(PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).nextPeriod))
                 .fontSize(16)
                 .fontWeight(700)
                 .fontColor('#FF6B6B')
@@ -352,7 +349,7 @@ struct Index {
                 .width(100)
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
-              Text(PeriodCalculator.formatDate(prediction.ovulationDay))
+              Text(PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).ovulationDay))
                 .fontSize(16)
                 .fontWeight(700)
                 .fontColor('#FFD93D')
@@ -365,7 +362,7 @@ struct Index {
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
               Text(
-                `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
+                `${PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).fertileWindow.start)} - ${PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).fertileWindow.end)}`
               )
                 .fontSize(16)
                 .fontWeight(700)
@@ -381,7 +378,7 @@ struct Index {
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
               Text(
-                `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
+                `${PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).safePeriod.start)} - ${PeriodCalculator.formatDate(PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings()).safePeriod.end)}`
               )
                 .fontSize(16)
                 .fontWeight(700)

@@ -4,8 +4,7 @@ import preferences from '@ohos.data.preferences';
 import fs from '@ohos.file.fs';
 import { BusinessError } from '@ohos.base';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-import Context from '@ohos.ability.featureAbility';
-import AsyncCallback from '@ohos.base';
+import featureAbility from '@ohos.ability.featureAbility';
 
 // 定义Symptom类型
 interface Symptom {
@@ -225,9 +224,7 @@ export class StorageService {
   async importData(filePath: string): Promise<boolean> {
     try {
       // 读取文件内容
-      const file = await fs.open(filePath, fs.OpenMode.READ_ONLY);
-      const fileContent = await fs.readText(file.fd);
-      await fs.close(file.fd);
+      const fileContent = await fs.readText(filePath);
       
       const importData: ImportData = JSON.parse(fileContent);
 
