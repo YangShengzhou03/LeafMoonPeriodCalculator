@@ -314,7 +314,7 @@ export class StorageService {
     }
   }
 
-  // 获取导出文件列表
+  // 获取所有导出的JSON文件
   async getExportFiles(): Promise<string[]> {
     try {
       const context: common.Context = common.getApplicationContext();

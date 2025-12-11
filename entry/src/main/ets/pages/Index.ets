@@ -650,11 +650,11 @@ struct Index {
             .width('100%')
             .height(44)
             .margin(20)
-            .onChange((value) => {
+            .onChange((value: string) => {
               // 简单的日期格式验证
               const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
               if (dateRegex.test(value)) {
-                const parts = value.split('-');
+                const parts: string[] = value.split('-');
                 const year = parseInt(parts[0]);
                 const month = parseInt(parts[1]) - 1;
                 const day = parseInt(parts[2]);

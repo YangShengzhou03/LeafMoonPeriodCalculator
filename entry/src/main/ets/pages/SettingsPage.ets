@@ -102,7 +102,21 @@ struct SettingsPage {
   async showFileSelectDialog(files: string[]): Promise<string | null> {
     return new Promise((resolve) => {
       let selectedFile: string | null = null;
-      const dialogContent = {
+      
+      // 定义对话框按钮类型
+      interface DialogButton {
+        value: string;
+        action: () => void;
+      }
+      
+      // 定义对话框内容类型
+      interface DialogContent {
+        title: string;
+        message: string;
+        buttons: DialogButton[];
+      }
+      
+      const dialogContent: DialogContent = {
         title: '选择数据文件',
         message: '请选择要导入的数据文件:',
         buttons: [

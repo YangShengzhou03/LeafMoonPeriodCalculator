@@ -60,7 +60,7 @@ struct CalendarPage {
   }
 
   // 上一个月
-  prevMonth() {
+  prevMonth(): void {
     this.currentMonth--;
     if (this.currentMonth < 0) {
       this.currentMonth = 11;
@@ -70,7 +70,7 @@ struct CalendarPage {
   }
 
   // 下一个月
-  nextMonth() {
+  nextMonth(): void {
     this.currentMonth++;
     if (this.currentMonth > 11) {
       this.currentMonth = 0;
@@ -80,7 +80,7 @@ struct CalendarPage {
   }
 
   // 返回首页
-  goBack() {
+  goBack(): void {
     // 使用 router.pushUrl 跳转到首页
     router.pushUrl({
       url: 'pages/Index'
