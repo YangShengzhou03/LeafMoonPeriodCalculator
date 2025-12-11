@@ -82,11 +82,13 @@ struct CalendarPage {
   // 返回首页
   goBack(): void {
     // 使用 router.push 跳转到首页
-    router.push({
-      url: 'pages/Index'
-    }).catch((err: Error) => {
+    try {
+      router.push({
+        url: 'pages/Index'
+      });
+    } catch (err) {
       console.error('返回首页失败:', err);
-    });
+    }
   }
 
   // 获取阶段颜色

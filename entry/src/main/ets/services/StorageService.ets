@@ -4,7 +4,8 @@ import preferences from '@ohos.data.preferences';
 import fs from '@ohos.file.fs';
 import { BusinessError } from '@ohos.base';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-import { AbilityContext } from '@ohos.ability.context';
+import Context from '@ohos.ability.featureAbility';
+import AsyncCallback from '@ohos.base';
 
 // 定义Symptom类型
 interface Symptom {
@@ -61,7 +62,7 @@ export class StorageService {
   private preferences: preferences.Preferences | null = null;
 
   // 初始化存储
-  async init(context: AbilityContext): Promise<void> {
+  async init(context: Context): Promise<void> {
     try {
       // 使用上下文获取偏好设置
       this.preferences = await preferences.getPreferences(context, 'period_calculator') as preferences.Preferences;

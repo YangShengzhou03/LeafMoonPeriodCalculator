@@ -1,6 +1,7 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, AlertDialog } from '@ohos.arkui';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
+import { AlertDialog } from '@ohos.arkui.dialog';
 import router from '@ohos.router';
 import { Onboarding } from '../components/Onboarding';
 
@@ -169,10 +170,12 @@ struct Index {
         .width(44)
         .height(44)
         .position({ x: '90%', y: 20 })
-        .onClick(() => {
-              router.push({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+        .onClick(async () => {
+              try {
+                router.push({ url: 'pages/SettingsPage' });
+              } catch (err) {
                 console.error('跳转到设置页面失败:', err);
-              });
+              }
             })
         .animation({
             duration: 200,
@@ -328,9 +331,10 @@ struct Index {
             .margin({ bottom: 16 })
 
           Column() {
-            // 获取预测结果
-            let prediction = PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings());
+            // 计算预测信息
+            const prediction = PeriodCalculator.predictNextPeriod(this.periodData.getLatestRecord(), this.periodData.getSettings());
             
+            // 预测信息已在组件内计算
             Row() {
               Text('下次月经:')
                 .width(100)
@@ -495,97 +499,102 @@ struct Index {
             .alignSelf(ItemAlign.Start)
             .margin({ bottom: 20 })
 
-          const records = this.periodData.getAllRecords();
-          const settings = this.periodData.getSettings();
-
           Grid() {
-            Column() {
-              Text('平均周期')
-                .fontSize(14)
-                .color('#888888')
-                .margin({ bottom: 8 })
-              Text(`${PeriodCalculator.calculateAverageCycleLength(records)} 天`)
-                .fontSize(22)
-                .fontWeight(700)
-                .color('#FF6B6B')
+            GridItem() {
+              Column() {
+                Text('平均周期')
+                  .fontSize(14)
+                  .color('#888888')
+                  .margin({ bottom: 8 })
+                Text(`${PeriodCalculator.calculateAverageCycleLength(this.periodData.getAllRecords())} 天`)
+                  .fontSize(22)
+                  .fontWeight(700)
+                  .color('#FF6B6B')
+              }
+              .padding(20)
+              .backgroundColor('#FFF5F5')
+              .borderRadius(16)
+              .width('100%')
+              .height('100%')
+              .shadow({
+                radius: 8,
+                color: 'rgba(255, 107, 107, 0.1)',
+                offsetX: 0,
+                offsetY: 4
+              });
             }
-            .padding(20)
-            .backgroundColor('#FFF5F5')
-            .borderRadius(16)
-            .width('100%')
-            .height('100%')
-            .shadow({
-              radius: 8,
-              color: 'rgba(255, 107, 107, 0.1)',
-              offsetX: 0,
-              offsetY: 4
-            });
-
-            Column() {
-              Text('平均经期')
-                .fontSize(14)
-                .color('#888888')
-                .margin({ bottom: 8 })
-              Text(`${PeriodCalculator.calculateAveragePeriodLength(records)} 天`)
-                .fontSize(22)
-                .fontWeight(FontWeight.Bold)
-                .color('#FF9F43')
+            
+            GridItem() {
+              Column() {
+                Text('平均经期')
+                  .fontSize(14)
+                  .color('#888888')
+                  .margin({ bottom: 8 })
+                Text(`${PeriodCalculator.calculateAveragePeriodLength(this.periodData.getAllRecords())} 天`)
+                  .fontSize(22)
+                  .fontWeight(FontWeight.Bold)
+                  .color('#FF9F43')
+              }
+              .padding(20)
+              .backgroundColor('#FFF8F0')
+              .borderRadius(16)
+              .width('100%')
+              .height('100%')
+              .shadow({
+                radius: 8,
+                color: 'rgba(255, 159, 67, 0.1)',
+                offsetX: 0,
+                offsetY: 4
+              });
             }
-            .padding(20)
-            .backgroundColor('#FFF8F0')
-            .borderRadius(16)
-            .width('100%')
-            .height('100%')
-            .shadow({
-              radius: 8,
-              color: 'rgba(255, 159, 67, 0.1)',
-              offsetX: 0,
-              offsetY: 4
-            });
-
-            Column() {
-              Text('记录次数')
-                .fontSize(14)
-                .color('#888888')
-                .margin({ bottom: 8 })
-              Text(records.length.toString())
-                .fontSize(22)
-                .fontWeight(FontWeight.Bold)
-                .color('#4D96FF')
+            
+            GridItem() {
+              Column() {
+                Text('记录次数')
+                  .fontSize(14)
+                  .color('#888888')
+                  .margin({ bottom: 8 })
+                Text(`${this.periodData.getAllRecords().length} 次`)
+                  .fontSize(22)
+                  .fontWeight(FontWeight.Bold)
+                  .color('#4D96FF')
+              }
+              .padding(20)
+              .backgroundColor('#F0F7FF')
+              .borderRadius(16)
+              .width('100%')
+              .height('100%')
+              .shadow({
+                radius: 8,
+                color: 'rgba(77, 150, 255, 0.1)',
+                offsetX: 0,
+                offsetY: 4
+              });
             }
-            .padding(20)
-            .backgroundColor('#F0F7FF')
-            .borderRadius(16)
-            .width('100%')
-            .height('100%')
-            .shadow({
-              radius: 8,
-              color: 'rgba(77, 150, 255, 0.1)',
-              offsetX: 0,
-              offsetY: 4
-            });
-
-            Column() {
-              Text('周期波动')
-                .fontSize(14)
-                .color('#888888')
-                .margin({ bottom: 8 })
-              Text(`${PeriodCalculator.calculateCycleVariability(records)} 天`)
-                .fontSize(22)
-                .fontWeight(FontWeight.Bold)
-                .color('#9C27B0')
+            
+            GridItem() {
+              Column() {
+                Text('周期波动')
+                  .fontSize(14)
+                  .color('#888888')
+                  .margin({ bottom: 8 })
+                Text(`${PeriodCalculator.calculateCycleVariability(this.periodData.getAllRecords())} 天`)
+                  .fontSize(22)
+                  .fontWeight(FontWeight.Bold)
+                  .color('#9C27B0')
+              }
+              .padding(20)
+              .backgroundColor('#F5F0FF')
+              .borderRadius(16)
+              .width('100%')
+              .height('100%')
+              .shadow({
+                radius: 8,
+                color: 'rgba(156, 39, 176, 0.1)',
+                offsetX: 0,
+                offsetY: 4
+              });
             }
-            .padding(20)
-            .backgroundColor('#F5F0FF')
-            .borderRadius(16)
-            .width('100%')
-            .height('100%')
-            .shadow({
-              radius: 8,
-              color: 'rgba(156, 39, 176, 0.1)',
-              offsetX: 0,
-              offsetY: 4
-            });
           }
           .columnsTemplate('1fr 1fr')
           .rowsTemplate('1fr 1fr')
@@ -734,17 +743,17 @@ struct Index {
               if (this.showSymptomList) {
                 Column() {
                   ForEach(this.periodData.getCommonSymptoms(), (symptom: string): void => {
-                Button(symptom)
-                  .width('100%')
-                  .height(40)
-                  .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
-                  .borderRadius(4)
-                  .margin({ bottom: 4 })
-                  .onClick((): void => {
-                    this.selectedSymptom = symptom;
-                    this.showSymptomList = false;
-                  })
-              }, (symptom: string): string => symptom)
+                    Button(symptom)
+                      .width('100%')
+                      .height(40)
+                      .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                      .borderRadius(4)
+                      .margin({ bottom: 4 })
+                      .onClick((): void => {
+                        this.selectedSymptom = symptom;
+                        this.showSymptomList = false;
+                      })
+                  }, (symptom: string): string => symptom)
                 }
                 .width('100%')
                 .backgroundColor('#FFFFFF')
