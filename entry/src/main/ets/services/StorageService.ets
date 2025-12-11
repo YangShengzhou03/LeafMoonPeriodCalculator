@@ -5,7 +5,7 @@ import fs from '@ohos.file.fs';
 import { fileIo } from '@kit.CoreFileKit';
 import { BusinessError } from '@ohos.base';
 import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
-import { getApplicationContext, UIAbilityContext } from '@kit.AbilityKit';
+import { UIAbilityContext } from '@ohos.ability.context';
 
 // 定义Symptom类型
 interface Symptom {
@@ -64,8 +64,8 @@ export class StorageService {
   // 初始化存储
   async init(): Promise<void> {
     try {
-      const context = getApplicationContext() as UIAbilityContext;
-      this.preferences = await preferences.getPreferences(context, 'period_calculator') as preferences.Preferences;
+      // 使用默认的上下文获取偏好设置
+      this.preferences = await preferences.getPreferences(globalThis.context, 'period_calculator') as preferences.Preferences;
     } catch (error) {
       console.error('初始化存储失败:', error);
     }
@@ -208,8 +208,7 @@ export class StorageService {
   async exportData(): Promise<string | null> {
     try {
       // 获取应用文档目录
-      const context = getApplicationContext() as UIAbilityContext;
-      const documentsDir: string = context.filesDir;
+      const documentsDir: string = fs.getFilesDir();
       
       // 生成唯一的文件名
       const now = new Date();
@@ -318,8 +317,8 @@ export class StorageService {
   // 获取所有导出的JSON文件
   async getExportFiles(): Promise<string[]> {
     try {
-      const context = getApplicationContext() as UIAbilityContext;
-      const documentsDir: string = context.filesDir;
+      // 获取应用文档目录
+      const documentsDir: string = fs.getFilesDir();
       
       // 使用fs.readdir获取文件列表
       const files: string[] = await fs.readdir(documentsDir);

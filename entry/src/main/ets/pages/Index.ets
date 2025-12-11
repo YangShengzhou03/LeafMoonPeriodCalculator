@@ -1,9 +1,8 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider } from '@ohos.arkui';
-import { ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow } from '@ohos.arkui';
 import router from '@ohos.router';
-import AlertDialog from '@ohos.alertDialog';
+import { AlertDialog } from '@ohos.arkui.dialog';
 import { Onboarding } from '../components/Onboarding';
 
 @Entry
@@ -172,7 +171,7 @@ struct Index {
         .height(44)
         .position({ x: '90%', y: 20 })
         .onClick(() => {
-              router.push({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+              router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
                 console.error('Navigation failed:', err);
               });
             })
@@ -288,7 +287,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.push({
+              router.pushUrl({
                 url: 'pages/CalendarPage'
               }).catch((err: Error) => {
                 console.error('Navigation failed:', err);
@@ -313,7 +312,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.push({
+              router.pushUrl({
                 url: 'pages/AnalysisPage'
               }).catch((err: Error) => {
                 console.error('Navigation failed:', err);
@@ -618,8 +617,6 @@ struct Index {
           color: 'rgba(0, 0, 0, 0.12)',
           offsetX: 0,
           offsetY: 8
-        });
-      }
 
       // 日期选择器对话框
       if (this.showDatePicker) {
@@ -666,7 +663,7 @@ struct Index {
 
       // 症状记录对话框
       if (this.showSymptomDialog) {
-        AlertDialog.show({
+        AlertDialog({
           title: '记录症状',
           message: '',
           primaryButton: {
@@ -680,55 +677,57 @@ struct Index {
           secondaryButton: {
             value: '确定',
             action: () => this.addSymptom()
-          },
-          builder: () => {
+          }
+        })
+        .show()
+        .builder(
+          Column() {
+            // 症状选择
+            Text('选择症状:')
+              .fontSize(14)
+              .color('#666666')
+              .alignSelf(ItemAlign.Start)
+              .margin({ bottom: 10 })
+
+            // 使用Column和Button实现自定义选择列表
             Column() {
-              // 症状选择
-              Text('选择症状:')
-                .fontSize(14)
-                .color('#666666')
-                .alignSelf(ItemAlign.Start)
+              Button(this.selectedSymptom || '请选择症状')
+                .width('100%')
+                .height(44)
+                .backgroundColor('#FFFFFF')
+                .borderRadius(8)
+                .borderWidth(1)
+                .borderColor('#E0E0E0')
                 .margin({ bottom: 10 })
+                .onClick(() => {
+                  this.showSymptomList = !this.showSymptomList;
+                })
 
-              // 使用Column和Button实现自定义选择列表
-              Column() {
-                Button(this.selectedSymptom || '请选择症状')
-                  .width('100%')
-                  .height(44)
-                  .backgroundColor('#FFFFFF')
-                  .borderRadius(8)
-                  .borderWidth(1)
-                  .borderColor('#E0E0E0')
-                  .margin({ bottom: 10 })
-                  .onClick(() => {
-                    this.showSymptomList = !this.showSymptomList;
+              if (this.showSymptomList) {
+                Column() {
+                  ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
+                    Button(symptom)
+                      .width('100%')
+                      .height(40)
+                      .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                      .borderRadius(4)
+                      .margin({ bottom: 4 })
+                      .onClick(() => {
+                        this.selectedSymptom = symptom;
+                        this.showSymptomList = false;
+                      })
                   })
-
-                if (this.showSymptomList) {
-                  Column() {
-                    ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
-                      Button(symptom)
-                        .width('100%')
-                        .height(40)
-                        .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
-                        .borderRadius(4)
-                        .margin({ bottom: 4 })
-                        .onClick(() => {
-                          this.selectedSymptom = symptom;
-                          this.showSymptomList = false;
-                        })
-                    })
-                  }
-                  .width('100%')
-                  .backgroundColor('#FFFFFF')
-                  .borderRadius(8)
-                  .borderWidth(1)
-                  .borderColor('#E0E0E0')
-                  .padding(8)
-                  .maxHeight(200)
-                  .overflow(Overflow.Scroll)
                 }
+                .width('100%')
+                .backgroundColor('#FFFFFF')
+                .borderRadius(8)
+                .borderWidth(1)
+                .borderColor('#E0E0E0')
+                .padding(8)
+                .maxHeight(200)
+                .overflow(Overflow.Scroll)
               }
+            }
               .width('100%')
               .margin({ bottom: 20 })
 
@@ -755,10 +754,9 @@ struct Index {
                 .fontWeight(FontWeight.Bold)
                 .color('#333333')
                 .margin({ top: 10 })
-            }
-            .padding(20)
           }
-        })
+          .padding(20)
+        )
       }
       
       // 新手引导
