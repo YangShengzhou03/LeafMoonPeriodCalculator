@@ -1,7 +1,8 @@
 import { TrendChart } from '../components/TrendChart';
 import { PeriodData, CycleTrendData, CycleStats } from '../model/PeriodData';
 import router from '@ohos.router';
-import { FontWeight } from '@ohos.arkui.advanced.Text';
+import { Column, Row, Text, Button, Blank, ScrollView, Divider } from '@ohos.arkui';
+import { ButtonType, FontWeight, TextAlign } from '@ohos.arkui';
 
 @Entry
 @Component
@@ -29,19 +30,16 @@ struct AnalysisPage {
         .type(ButtonType.Circle)
         .backgroundColor('#F5F5F5')
         .onClick(() => {
-          router.back().catch((err: Error) => {
-            console.error('返回失败:', err);
-          });
-        })
+            router.push({ url: 'pages/Index' });
+          })
 
-        NavigationTitle() {
-          Text('数据分析')
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-        }
-        .margin({ left: 10 })
+        Text('数据分析')
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .margin({ left: 10 })
 
         Blank()
+          .width('100%')
       }
       .width('100%')
       .height(56)
@@ -58,11 +56,11 @@ struct AnalysisPage {
               .margin({ bottom: 16 })
 
             // 趋势图组件
-            TrendChart(
-              data: this.getTrendData(),
-              width: 320,
-              height: 240
-            )
+            TrendChart({
+          data: this.getTrendData(),
+          chartWidth: 320,
+          chartHeight: 240
+        })
           }
           .width('100%')
           .padding(16)
@@ -89,7 +87,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#FF6B6B')
               }
-              .layoutWeight(1)
+              .weight(1)
               .alignItems(HorizontalAlign.Center)
 
               Divider()
@@ -109,7 +107,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#4ECDC4')
               }
-              .layoutWeight(1)
+              .weight(1)
               .alignItems(HorizontalAlign.Center)
             }
 
@@ -129,7 +127,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#95E1D3')
               }
-              .layoutWeight(1)
+              .weight(1)
               .alignItems(HorizontalAlign.Center)
 
               Divider()
@@ -149,7 +147,7 @@ struct AnalysisPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#F38181')
               }
-              .flexGrow(1)
+              .weight(1)
               .alignItems(HorizontalAlign.Center)
             }
 
@@ -214,9 +212,7 @@ struct AnalysisPage {
           .padding(16)
           .backgroundColor('#FFFFFF')
         }
-        .padding(16)
       }
-      .layoutWeight(1)
     }
     .width('100%')
     .height('100%')

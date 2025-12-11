@@ -1,11 +1,11 @@
 // 数据持久化服务
 import { PeriodRecord, UserSettings } from '../model/PeriodData';
-import Preferences from '@ohos.data.preferences';
+import preferences from '@ohos.data.preferences';
 import fs from '@ohos.file.fs';
-import path from '@ohos.file.path';
 import { fileIo } from '@kit.CoreFileKit';
 import { BusinessError } from '@ohos.base';
-import common from '@ohos.app.ability.common';
+import abilityAccessCtrl from '@ohos.abilityAccessCtrl';
+import { common } from '@kit.AbilityKit';
 
 // 定义Symptom类型
 interface Symptom {
@@ -59,13 +59,13 @@ const STORAGE_KEY = 'leaf_moon_period_data';
 const SETTINGS_KEY = 'leaf_moon_settings';
 
 export class StorageService {
-  private preferences: Preferences | null = null;
+  private preferences: preferences.Preferences | null = null;
 
   // 初始化存储
   async init(): Promise<void> {
     try {
-      // 使用 getApplicationContext() 获取应用上下文
-      this.preferences = await Preferences.getPreferences(common.getApplicationContext(), 'period_calculator');
+      const context = common.getApplicationContext() as common.UIAbilityContext;
+      this.preferences = await preferences.getPreferences(context, 'period_calculator') as preferences.Preferences;
     } catch (error) {
       console.error('初始化存储失败:', error);
     }
@@ -79,8 +79,8 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const serializableRecords: SerializablePeriodRecord[] = records.map(record => {
-          const serializableSymptoms: SerializableSymptom[] = record.symptoms.map(symptom => {
+        const serializableRecords: SerializablePeriodRecord[] = records.map((record: PeriodRecord) => {
+          const serializableSymptoms: SerializableSymptom[] = record.symptoms.map((symptom: Symptom) => {
             const serializableSymptom: SerializableSymptom = {
               id: symptom.id,
               name: symptom.name,
@@ -118,12 +118,12 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const recordsJson: string = await this.preferences.get(STORAGE_KEY, '[]');
+        const recordsJson: string = this.preferences.get(STORAGE_KEY, '[]') as string;
         const serializableRecords: SerializablePeriodRecord[] = JSON.parse(recordsJson) as SerializablePeriodRecord[];
 
         // 将ISO字符串转换回Date对象
-        return serializableRecords.map(record => {
-          const symptoms: Symptom[] = record.symptoms.map(symptom => {
+        return serializableRecords.map((record: SerializablePeriodRecord) => {
+          const symptoms: Symptom[] = record.symptoms.map((symptom: SerializableSymptom) => {
             const symptomObj: Symptom = {
               id: symptom.id,
               name: symptom.name,
@@ -152,7 +152,7 @@ export class StorageService {
     return [];
   }
 
-  // 保存用户设置
+  // 保存设置
   async saveSettings(settings: UserSettings): Promise<void> {
     if (!this.preferences) {
       await this.init();
@@ -168,7 +168,7 @@ export class StorageService {
     }
   }
 
-  // 读取用户设置
+  // 加载设置
   async loadSettings(): Promise<UserSettings | null> {
     if (!this.preferences) {
       await this.init();
@@ -176,13 +176,14 @@ export class StorageService {
 
     if (this.preferences) {
       try {
-        const settingsJson: string = await this.preferences.get(SETTINGS_KEY, 'null');
-        return settingsJson ? JSON.parse(settingsJson) as UserSettings : null;
+        const settingsJson: string = this.preferences.get(SETTINGS_KEY, '') as string;
+        if (settingsJson) {
+          return JSON.parse(settingsJson) as UserSettings;
+        }
       } catch (error) {
-        console.error('读取设置失败:', error);
+        console.error('加载设置失败:', error);
       }
     }
-
     return null;
   }
 
@@ -207,21 +208,21 @@ export class StorageService {
   async exportData(): Promise<string | null> {
     try {
       // 获取应用文档目录
-      const context: common.Context = common.getApplicationContext();
+      const context = common.getApplicationContext() as common.UIAbilityContext;
       const documentsDir: string = context.filesDir;
       
       // 生成唯一的文件名
       const now = new Date();
       const fileName: string = `period_data_${now.getFullYear()}_${now.getMonth() + 1}_${now.getDate()}_${now.getHours()}_${now.getMinutes()}.json`;
-      const filePath: string = path.join(documentsDir, fileName);
+      const filePath: string = documentsDir + '/' + fileName;
 
       // 获取当前数据
       const records: PeriodRecord[] = await this.loadPeriodRecords();
       const settings: UserSettings | null = await this.loadSettings();
 
       // 准备导出数据
-      const serializableRecords: SerializablePeriodRecord[] = records.map(record => {
-        const serializableSymptoms: SerializableSymptom[] = record.symptoms.map(symptom => {
+      const serializableRecords: SerializablePeriodRecord[] = records.map((record: PeriodRecord) => {
+        const serializableSymptoms: SerializableSymptom[] = record.symptoms.map((symptom: Symptom) => {
           const serializableSymptom: SerializableSymptom = {
             id: symptom.id,
             name: symptom.name,
@@ -251,7 +252,7 @@ export class StorageService {
       };
 
       // 写入文件
-      const file: fileIo.File = await fileIo.open(filePath, fileIo.OpenMode.CREATE | fileIo.OpenMode.WRITE);
+      const file: fileIo.File = await fileIo.open(filePath, fileIo.OpenMode.READ_WRITE | fileIo.OpenMode.CREATE);
       await fileIo.write(file.fd, JSON.stringify(exportData, null, 2));
       await fileIo.close(file.fd);
 
@@ -317,16 +318,16 @@ export class StorageService {
   // 获取所有导出的JSON文件
   async getExportFiles(): Promise<string[]> {
     try {
-      const context: common.Context = common.getApplicationContext();
+      const context = common.getApplicationContext() as common.UIAbilityContext;
       const documentsDir: string = context.filesDir;
       
-      // 使用fileIo.listFile获取文件列表
-      const files: string[] = await fileIo.listFile(documentsDir);
+      // 使用fs.readdir获取文件列表
+      const files: string[] = await fs.readdir(documentsDir);
       
       // 过滤出period_data开头的JSON文件
       const result: string[] = files
-        .filter(file => file.startsWith('period_data_') && file.endsWith('.json'))
-        .map(file => path.join(documentsDir, file));
+        .filter((file: string) => file.startsWith('period_data_') && file.endsWith('.json'))
+        .map((file: string) => documentsDir + '/' + file);
       return result;
     } catch (error) {
       console.error('获取导出文件列表失败:', error);

@@ -2,7 +2,8 @@ import { PeriodData } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
 import router from '@ohos.router';
 import { Text, Row, Stack, Circle, Column, Button } from '@ohos.arkui';
-import { TextAlign, FlexAlign, VerticalAlign } from '@ohos.arkui';
+import { Grid, GridItem } from '@ohos.arkui.advanced.Layouts';
+import { TextAlign, FlexAlign, VerticalAlign, HorizontalAlign } from '@ohos.arkui';
 
 // 日历天类型定义
 interface CalendarDay {
@@ -16,7 +17,8 @@ interface CalendarDay {
 @Entry
 @Component
 struct CalendarPage {
-  @State periodData: PeriodData = new PeriodData();
+  private periodData: PeriodData = new PeriodData();
+  private readonly weekdays = ['日', '一', '二', '三', '四', '五', '六'];
   @State currentYear: number = new Date().getFullYear();
   @State currentMonth: number = new Date().getMonth();
   @State calendarDays: CalendarDay[] = [];
@@ -81,11 +83,11 @@ struct CalendarPage {
 
   // 返回首页
   goBack(): void {
-    // 使用 router.pushUrl 跳转到首页
-    router.pushUrl({
+    // 使用 router.push 跳转到首页
+    router.push({
       url: 'pages/Index'
     }).catch((err: Error) => {
-      console.error('导航失败:', err);
+      console.error('返回首页失败:', err);
     });
   }
 
@@ -160,8 +162,7 @@ struct CalendarPage {
 
       // 星期标题
       Row() {
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        ForEach(weekdays, (weekday: string) => {
+        ForEach(this.weekdays, (weekday: string) => {
           Text(weekday)
             .width('14.28%')
             .fontSize(14)

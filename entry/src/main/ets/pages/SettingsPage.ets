@@ -1,9 +1,8 @@
 // 设置页面
 import { PeriodData } from '../model/PeriodData';
 import { StorageService } from '../services/StorageService';
-import AlertDialog from '@ohos.alertDialog';
+import { AlertDialog } from '@ohos.arkui.dialog';
 import router from '@ohos.router';
-import { FontWeight } from '@ohos.arkui.advanced.Text';
 
 @Entry
 @Component
@@ -54,9 +53,7 @@ struct SettingsPage {
               .title('导入成功')
               .message('数据导入成功')
               .primaryButton('确定', () => {
-                router.pushUrl({ url: 'pages/Index' }).catch((err: Error) => {
-                  console.error('导航失败:', err);
-                });
+                router.replaceUrl({ url: 'pages/Index' });
               })
               .show();
           } else {
@@ -164,11 +161,9 @@ struct SettingsPage {
               buttons: [
                 {
                   text: '确定',
-                  action: () => {
-                    router.pushUrl({ url: 'pages/Index' }).catch((err: Error) => {
-                      console.error('导航失败:', err);
-                    });
-                  }
+                    action: () => {
+                      router.push({ url: 'pages/Index' });
+                    }
                 }
               ]
             });
@@ -198,7 +193,7 @@ struct SettingsPage {
         .width(40)
         .height(40)
         .onClick(() => {
-          router.back();
+          router.push({ url: 'pages/Index' });
         })
 
         Text('设置')
@@ -209,7 +204,7 @@ struct SettingsPage {
       .width('100%')
       .height(60)
       .padding({ left: 20, right: 20 })
-      .alignItems(HorizontalAlign.Center)
+      .alignItems(VerticalAlign.Center)
 
       // 内容区域
       Column() {

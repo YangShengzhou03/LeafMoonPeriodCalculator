@@ -1,5 +1,5 @@
 import { Stack, Row, Canvas, Text } from '@ohos.arkui';
-import { CanvasRenderingContext2D } from '@ohos.canvas.canvas';
+import { CanvasRenderingContext2D } from '@ohos.canvas';
 import { FlexAlign } from '@ohos.arkui';
 
 export interface ChartData {

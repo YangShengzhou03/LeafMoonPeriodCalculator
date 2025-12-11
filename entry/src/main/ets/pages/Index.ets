@@ -1,9 +1,9 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Grid } from '@kit.ArkUI';
-import { Slider } from '@kit.ArkUI';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider } from '@ohos.arkui';
+import { ItemAlign, FontWeight } from '@ohos.arkui';
 import router from '@ohos.router';
-import { AlertDialog } from '@kit.ArkUI';
+import AlertDialog from '@ohos.alertDialog';
 import { Onboarding } from '../components/Onboarding';
 
 @Entry
@@ -172,14 +172,14 @@ struct Index {
         .height(44)
         .position({ x: '90%', y: 20 })
         .onClick(() => {
-          router.pushUrl({ url: 'pages/SettingsPage' }).catch((err: Error) => {
-            console.error('导航失败:', err);
-          });
-        })
+              router.push({ url: 'pages/SettingsPage' }).catch((err: Error) => {
+                console.error('Navigation failed:', err);
+              });
+            })
         .animation({
-          duration: 200,
-          curve: Curve.EaseInOut
-        })
+            duration: 200,
+            curve: Curve.EaseInOut
+          })
       }
       .width('100%')
       .height(140)
@@ -288,10 +288,10 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({
+              router.push({
                 url: 'pages/CalendarPage'
               }).catch((err: Error) => {
-                console.error('导航失败:', err);
+                console.error('Navigation failed:', err);
               });
             })
             .animation({
@@ -313,16 +313,16 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({
+              router.push({
                 url: 'pages/AnalysisPage'
               }).catch((err: Error) => {
-                console.error('导航失败:', err);
+                console.error('Navigation failed:', err);
               });
             })
             .animation({
-            duration: 200,
-            curve: Curve.EaseInOut
-          })
+              duration: 200,
+              curve: Curve.EaseInOut
+            })
         }
         .width('90%')
         .justifyContent('SpaceBetween')
@@ -372,8 +372,7 @@ struct Index {
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
               Text(
-                `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ` +
-                `${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
+                `${PeriodCalculator.formatDate(prediction.fertileWindow.start)} - ${PeriodCalculator.formatDate(prediction.fertileWindow.end)}`
               )
                 .fontSize(16)
                 .fontWeight(700)
@@ -389,8 +388,7 @@ struct Index {
                 .fontSize(16)
                 .fontColor(this.darkMode ? '#AAAAAA' : '#666666')
               Text(
-                `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ` +
-                `${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
+                `${PeriodCalculator.formatDate(prediction.safePeriod.start)} - ${PeriodCalculator.formatDate(prediction.safePeriod.end)}`
               )
                 .fontSize(16)
                 .fontWeight(700)
@@ -535,7 +533,7 @@ struct Index {
               color: 'rgba(255, 107, 107, 0.1)',
               offsetX: 0,
               offsetY: 4
-            })
+            });
 
             Column() {
               Text('平均经期')
@@ -557,7 +555,7 @@ struct Index {
               color: 'rgba(255, 159, 67, 0.1)',
               offsetX: 0,
               offsetY: 4
-            })
+            });
 
             Column() {
               Text('记录次数')
@@ -579,7 +577,7 @@ struct Index {
               color: 'rgba(77, 150, 255, 0.1)',
               offsetX: 0,
               offsetY: 4
-            })
+            });
 
             Column() {
               Text('周期波动')
@@ -601,7 +599,7 @@ struct Index {
               color: 'rgba(156, 39, 176, 0.1)',
               offsetX: 0,
               offsetY: 4
-            })
+            });
           }
           .columnsTemplate('1fr 1fr')
           .rowsTemplate('1fr 1fr')
@@ -620,7 +618,7 @@ struct Index {
           color: 'rgba(0, 0, 0, 0.12)',
           offsetX: 0,
           offsetY: 8
-        })
+        });
       }
 
       // 日期选择器对话框
@@ -660,7 +658,7 @@ struct Index {
                 const day = parseInt(parts[2]);
                 this.selectedDate = new Date(year, month, day);
               }
-            })
+            });
           },
           autoCancel: true
         });
@@ -689,7 +687,7 @@ struct Index {
               Text('选择症状:')
                 .fontSize(14)
                 .color('#666666')
-                .alignSelf('Start')
+                .alignSelf(ItemAlign.Start)
                 .margin({ bottom: 10 })
 
               // 使用Column和Button实现自定义选择列表
@@ -707,29 +705,28 @@ struct Index {
                   })
 
                 if (this.showSymptomList) {
-                  Column()
-                    .width('100%')
-                    .backgroundColor('#FFFFFF')
-                    .borderRadius(8)
-                    .borderWidth(1)
-                    .borderColor('#E0E0E0')
-                    .padding(8)
-                    .maxHeight(200)
-                    .overflow('Scroll')
-                    .children([
-                      for (let symptom of this.periodData.getCommonSymptoms()) {
-                        Button(symptom)
-                          .width('100%')
-                          .height(40)
-                          .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
-                          .borderRadius(4)
-                          .margin({ bottom: 4 })
-                          .onClick(() => {
-                            this.selectedSymptom = symptom;
-                            this.showSymptomList = false;
-                          })
-                      }
-                    ])
+                  Column() {
+                    ForEach(this.periodData.getCommonSymptoms(), (symptom: string) => {
+                      Button(symptom)
+                        .width('100%')
+                        .height(40)
+                        .backgroundColor(symptom === this.selectedSymptom ? '#F5F5F5' : '#FFFFFF')
+                        .borderRadius(4)
+                        .margin({ bottom: 4 })
+                        .onClick(() => {
+                          this.selectedSymptom = symptom;
+                          this.showSymptomList = false;
+                        })
+                    })
+                  }
+                  .width('100%')
+                  .backgroundColor('#FFFFFF')
+                  .borderRadius(8)
+                  .borderWidth(1)
+                  .borderColor('#E0E0E0')
+                  .padding(8)
+                  .maxHeight(200)
+                  .overflow('Scroll')
                 }
               }
               .width('100%')
@@ -751,7 +748,7 @@ struct Index {
               .width('100%')
               .onChange((value: number): void => {
                 this.symptomValue = value;
-              })
+              });
 
               Text(`${this.symptomValue}`)
                 .fontSize(16)
@@ -760,14 +757,13 @@ struct Index {
                 .margin({ top: 10 })
             }
             .padding(20)
-          },
-          autoCancel: true
+          }
         });
       }
       
       // 新手引导
       if (this.showOnboarding) {
-        Onboarding(this.periodData as PeriodData);
+        Onboarding({ periodData: this.periodData });
       }
     }
   }
