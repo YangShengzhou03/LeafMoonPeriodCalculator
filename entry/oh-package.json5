@@ -5,10 +5,6 @@
   "main": "",
   "author": "",
   "license": "",
-  "dependencies": {
-    "@ohos/arkui-ts": "^6.0.0",
-    "@ohos/arkui-ts/dialog": "^6.0.0",
-    "@ohos/canvas-ts": "^6.0.0"
-  }
+  "dependencies": {}
 }
 

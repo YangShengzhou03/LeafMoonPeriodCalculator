@@ -1,7 +1,7 @@
 import { TrendChart } from '../components/TrendChart';
 import { PeriodData, CycleTrendData, CycleStats } from '../model/PeriodData';
 import router from '@ohos.router';
-import { Column, Row, Text, Button, Blank, ScrollView, Divider, ButtonType, FontWeight, TextAlign } from '@ohos/arkui-ts';
+import { Column, Row, Text, Button, Blank, ScrollView, Divider, ButtonType, FontWeight, TextAlign } from '@ohos/arkui';
 
 @Entry
 @Component
