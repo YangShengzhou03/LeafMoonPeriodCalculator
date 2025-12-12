@@ -1,7 +1,7 @@
 import { PeriodData, Symptom, DateRange } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, TextOverflow } from '@ohos/arkui';
-import { AlertDialog } from '@ohos/arkui/dialog';
+import { Stack, Column, Row, Text, Button, TextInput, Progress, Slider, ItemAlign, FontWeight, Overflow, TextOverflow } from '@ohos/arkui-ts';
+import { AlertDialog } from '@ohos/arkui-ts/dialog';
 import router from '@ohos.router';
 import { Onboarding } from '../components/Onboarding';
 
@@ -172,7 +172,7 @@ struct Index {
         .position({ x: '90%', y: 20 })
         .onClick(async () => {
               try {
-                router.pushUrl({ url: 'pages/SettingsPage' });
+                router.push({ url: 'pages/SettingsPage' });
               } catch (err) {
                 console.error('跳转到设置页面失败:', err);
               }
@@ -289,7 +289,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({ url: 'pages/CalendarPage' });
+              router.push({ url: 'pages/CalendarPage' });
             })
             .animation({
               duration: 200,
@@ -310,7 +310,7 @@ struct Index {
               offsetY: 4
             })
             .onClick(() => {
-              router.pushUrl({ url: 'pages/AnalysisPage' });
+              router.push({ url: 'pages/AnalysisPage' });
             })
             .animation({
               duration: 200,

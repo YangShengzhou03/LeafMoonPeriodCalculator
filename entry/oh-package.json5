@@ -6,9 +6,9 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "@ohos/arkui": "^6.0.0",
-    "@ohos/arkui/dialog": "^6.0.0",
-    "@ohos/canvas": "^6.0.0"
+    "@ohos/arkui-ts": "^6.0.0",
+    "@ohos/arkui-ts/dialog": "^6.0.0",
+    "@ohos/canvas-ts": "^6.0.0"
   }
 }
 

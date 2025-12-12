@@ -1,5 +1,5 @@
-import { Stack, Row, Canvas, Text, FlexAlign } from '@ohos/arkui';
-import { CanvasRenderingContext2D } from '@ohos/canvas';
+import { Stack, Row, Canvas, Text, FlexAlign } from '@ohos/arkui-ts';
+import { CanvasRenderingContext2D } from '@ohos/canvas-ts';
 
 export interface ChartData {
   dates: string[];
