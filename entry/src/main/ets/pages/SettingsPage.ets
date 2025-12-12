@@ -1,7 +1,7 @@
 // 设置页面
 import { PeriodData } from '../model/PeriodData';
 import { StorageService } from '../services/StorageService';
-import { AlertDialog } from '@ohos.arkui.dialog';
+import { AlertDialog } from '@ohos/arkui/dialog';
 import router from '@ohos.router';
 
 @Entry
@@ -162,7 +162,7 @@ struct SettingsPage {
                 {
                   text: '确定',
                     action: () => {
-                    router.push({ url: 'pages/Index' });
+                    router.pushUrl({ url: 'pages/Index' });
                   }
                 }
               ]
@@ -193,7 +193,7 @@ struct SettingsPage {
         .width(40)
         .height(40)
         .onClick(() => {
-          router.push({ url: 'pages/Index' });
+          router.pushUrl({ url: 'pages/Index' });
         })
 
         Text('设置')

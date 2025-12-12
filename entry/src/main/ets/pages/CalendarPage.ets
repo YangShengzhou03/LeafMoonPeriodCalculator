@@ -83,7 +83,7 @@ struct CalendarPage {
   goBack(): void {
     // 使用 router.push 跳转到首页
     try {
-      router.push({
+      router.pushUrl({
         url: 'pages/Index'
       });
     } catch (err) {

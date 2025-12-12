@@ -1,7 +1,7 @@
 import { TrendChart } from '../components/TrendChart';
 import { PeriodData, CycleTrendData, CycleStats } from '../model/PeriodData';
 import router from '@ohos.router';
-import { Column, Row, Text, Button, Blank, ScrollView, Divider, ButtonType, FontWeight, TextAlign } from '@ohos.arkui';
+import { Column, Row, Text, Button, Blank, ScrollView, Divider, ButtonType, FontWeight, TextAlign } from '@ohos/arkui';
 
 @Entry
 @Component
@@ -29,7 +29,7 @@ struct AnalysisPage {
         .type(ButtonType.Circle)
         .backgroundColor('#F5F5F5')
         .onClick(() => {
-            router.push({ url: 'pages/Index' });
+            router.pushUrl({ url: 'pages/Index' });
           })
 
         Text('数据分析')
