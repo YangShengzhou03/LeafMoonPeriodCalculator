@@ -1,7 +1,6 @@
 import { PeriodData } from '../model/PeriodData';
 import { PeriodCalculator } from '../utils/PeriodCalculator';
-import router from '@ohos.router';
-import { Text, Row, Stack, Circle, Column, Button, TextAlign, FlexAlign, VerticalAlign, HorizontalAlign, Grid, GridItem } from '@ohos/arkui';
+import router from '@ohos/router';
 
 // 日历天类型定义
 interface CalendarDay {
@@ -83,7 +82,7 @@ struct CalendarPage {
   goBack(): void {
     // 使用 router.push 跳转到首页
     try {
-      router.push({
+      router.pushUrl({
         url: 'pages/Index'
       });
     } catch (err) {

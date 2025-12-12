@@ -1,5 +1,15 @@
 {
   "apiType": "stageMode",
+  "module": {
+    "compileSdkVersion": {
+      "platformVersion": "5.0.0",
+      "apiVersion": 10
+    },
+    "compatibleSdkVersion": {
+      "platformVersion": "5.0.0",
+      "apiVersion": 10
+    }
+  },
   "buildOption": {
     "resOptions": {
       "copyCodeResource": {
@@ -27,7 +37,7 @@
       "name": "default"
     },
     {
-      "name": "ohosTest",
+      "name": "ohosTest"
     }
   ]
 }

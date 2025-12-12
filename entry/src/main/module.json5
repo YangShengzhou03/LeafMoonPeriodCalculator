@@ -4,6 +4,8 @@
     "type": "entry",
     "description": "$string:module_desc",
     "mainElement": "EntryAbility",
+    "minAPIVersion": 10,
+    "targetAPIVersion": 10,
     "deviceTypes": [
       "phone",
       "tablet",
